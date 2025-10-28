@@ -155,12 +155,17 @@ export function ModelSelector() {
         })}
       </div>
       <Dialog open={isRestrictedModalOpen} onOpenChange={setIsRestrictedModalOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Model Restricted</DialogTitle>
           </DialogHeader>
-          <DialogDescription>
-            {t('restrictedModelMessage')}
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>{t('restrictedModelMessage')}</div>
+              <div className="text-sm text-muted-foreground">
+                Unlock access to premium AI models including GPT-4o, Claude, Gemini, and more with the full version of ChatRAG.
+              </div>
+            </div>
           </DialogDescription>
         </DialogContent>
       </Dialog>

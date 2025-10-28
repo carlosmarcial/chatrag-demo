@@ -220,9 +220,11 @@ export function MobileMCPToolsModal({ isOpen, onClose }: MobileMCPToolsModalProp
 
             {!loading && tools.length === 0 && !error && (
               <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Hammer className="h-8 w-8 text-gray-400 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">No tools available</p>
+                <div className="text-center px-4">
+                  <Hammer className="h-12 w-12 text-purple-600 dark:text-purple-400 mx-auto mb-3 opacity-50" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xs mx-auto">
+                    Get ChatRAG to install and connect all the MCP servers you want.
+                  </p>
                 </div>
               </div>
             )}

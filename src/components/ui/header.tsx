@@ -513,7 +513,7 @@ export function Header({ onNewChat, onToggleSidebar, isSidebarOpen }: HeaderProp
             {/* WhatsApp Connection Button */}
             {!isAuthPage && user && (
               <div className="mr-2 flex items-center">
-                <WhatsAppConnectionButton />
+                <WhatsAppConnectionButton demoMode={true} />
               </div>
             )}
             {!isAuthPage && (

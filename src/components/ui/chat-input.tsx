@@ -4711,8 +4711,9 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                         
                         {/* Add MCP Tools Button */}
                         {MCP_TOOLS_LIST_ENABLED && (
-                          <MCPToolsButton 
+                          <MCPToolsButton
                             disabled={parentIsLoading || isProcessingDoc}
+                            demoMode={true}
                           />
                         )}
                       </>
@@ -4757,12 +4758,17 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
 
         {/* Demo restriction modal */}
         <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Feature Restricted</DialogTitle>
             </DialogHeader>
-            <DialogDescription>
-              This feature is only available in the full version of ChatRAG.
+            <DialogDescription asChild>
+              <div className="space-y-3">
+                <div>This feature is only available in the full version of ChatRAG.</div>
+                <div className="text-sm text-muted-foreground">
+                  Get the full ChatRAG experience with unlimited access to all features, advanced AI models, and powerful integrations.
+                </div>
+              </div>
             </DialogDescription>
           </DialogContent>
         </Dialog>

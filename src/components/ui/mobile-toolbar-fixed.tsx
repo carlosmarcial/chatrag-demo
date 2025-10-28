@@ -308,7 +308,7 @@ export function MobileToolbarFixed({ className }: MobileToolbarProps) {
           />
         </div>
         <div data-mobile-whatsapp-trigger>
-          <WhatsAppConnectionButton />
+          <WhatsAppConnectionButton demoMode={true} />
         </div>
       </div>
     </>

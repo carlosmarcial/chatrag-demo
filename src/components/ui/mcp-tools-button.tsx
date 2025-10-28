@@ -47,6 +47,7 @@ interface MCPToolsButtonProps {
   disabled?: boolean;
   isActive?: boolean;
   className?: string;
+  demoMode?: boolean;
 }
 
 /**
@@ -129,10 +130,11 @@ class McpToolsApiManager {
   }
 }
 
-export function MCPToolsButton({ 
-  disabled = false, 
+export function MCPToolsButton({
+  disabled = false,
   isActive = false,
-  className
+  className,
+  demoMode = false
 }: MCPToolsButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [tools, setTools] = useState<MCPTool[]>([]);
@@ -159,6 +161,11 @@ export function MCPToolsButton({
         const allTools: MCPTool[] = [];
         
         for (const [serverName, serverTools] of Object.entries(data.toolsByServer)) {
+          // Skip Zapier tools in demo mode
+          if (demoMode && serverName === 'zapier') {
+            continue;
+          }
+
           if (Array.isArray(serverTools)) {
             serverTools.forEach((tool: any) => {
               allTools.push({
@@ -347,8 +354,7 @@ export function MCPToolsButton({
             </DialogPrimitive.Close>
             <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 pr-10">{t('availableMcpTools')}</h2>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              ChatRAG can use tools provided by specialized servers using Model Context Protocol. 
-              <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline ml-1">{t('learnMore')}</a>
+              ChatRAG can use tools provided by specialized servers using Model Context Protocol.
             </p>
           </div>
           
@@ -357,6 +363,13 @@ export function MCPToolsButton({
               <div className="flex items-center justify-center py-4">
                 <div className="h-5 w-5 border-2 border-purple-600 dark:border-purple-400 border-r-transparent rounded-full animate-spin"></div>
                 <span className="ml-3 text-sm text-neutral-600 dark:text-neutral-400">{t('loadingTools')}</span>
+              </div>
+            ) : tools.length === 0 && !error ? (
+              <div className="flex flex-col items-center justify-center py-8 px-4">
+                <Hammer className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-3 opacity-50" />
+                <p className="text-sm text-center text-neutral-600 dark:text-neutral-400 max-w-xs">
+                  Get ChatRAG to install and connect all the MCP servers you want.
+                </p>
               </div>
             ) : error ? (
               <div className="space-y-4">

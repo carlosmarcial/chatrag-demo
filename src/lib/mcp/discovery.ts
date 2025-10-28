@@ -127,22 +127,6 @@ export class UniversalMcpDiscovery {
     const endpoints: McpEndpoint[] = [];
     const env = process.env;
     
-    // Zapier MCP endpoint - Uses Streamable HTTP
-    if (env.MCP_ZAPIER_ENDPOINT) {
-      const config = getServerConfig({
-        id: 'zapier',
-        name: 'Zapier',
-        endpoint: env.MCP_ZAPIER_ENDPOINT
-      }, 'zapier');
-      
-      endpoints.push({
-        name: 'Zapier',
-        url: env.MCP_ZAPIER_ENDPOINT,
-        type: 'streamable-http',
-        config
-      });
-    }
-
     // Context7 MCP endpoint - Uses SSE
     if (env.MCP_CONTEXT7_ENDPOINT) {
       const config = getServerConfig({

@@ -9,7 +9,7 @@ export const en = {
   general: "General",
   logout: "Log out",
   modelSelector: "Select AI model",
-   restrictedModelMessage: "This model is only available in the full version of ChatGPT.",
+   restrictedModelMessage: "This model is only available in the full version of ChatRAG.",
   textSize: "Text Size",
   themeToggle: "Toggle theme",
   shareChat: "Share chat",

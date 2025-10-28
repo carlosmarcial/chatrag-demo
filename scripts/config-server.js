@@ -464,7 +464,6 @@ ${fullValues.DEBUG_RAG !== undefined ? `DEBUG_RAG=${fullValues.DEBUG_RAG}` : 'DE
 # -----------------------------
 # MCP CONFIGURATION
 # -----------------------------
-${fullValues.MCP_ZAPIER_ENDPOINT ? `MCP_ZAPIER_ENDPOINT=${fullValues.MCP_ZAPIER_ENDPOINT}` : 'MCP_ZAPIER_ENDPOINT='}
 ${fullValues.MCP_CONTEXT7_ENDPOINT ? `MCP_CONTEXT7_ENDPOINT=${fullValues.MCP_CONTEXT7_ENDPOINT}` : 'MCP_CONTEXT7_ENDPOINT='}
 ${fullValues.MCP_21ST_DEV_ENDPOINT ? `MCP_21ST_DEV_ENDPOINT=${fullValues.MCP_21ST_DEV_ENDPOINT}` : 'MCP_21ST_DEV_ENDPOINT='}
 ${fullValues.MCP_BRAVE_SEARCH_ENDPOINT ? `MCP_BRAVE_SEARCH_ENDPOINT=${fullValues.MCP_BRAVE_SEARCH_ENDPOINT}` : 'MCP_BRAVE_SEARCH_ENDPOINT='}
@@ -1024,7 +1023,6 @@ DEBUG_RAG=${getEnvValue('DEBUG_RAG') || 'false'}
 # -----------------------------
 # MCP CONFIGURATION
 # -----------------------------
-MCP_ZAPIER_ENDPOINT=${getEnvValue('MCP_ZAPIER_ENDPOINT') || ''}
 MCP_CUSTOM_SERVERS=${getEnvValue('MCP_CUSTOM_SERVERS') || '[]'}
 `;
 }
@@ -1338,7 +1336,6 @@ DEBUG_RAG=${getEnvValue('DEBUG_RAG') || 'false'}
 # -----------------------------
 # MCP CONFIGURATION
 # -----------------------------
-MCP_ZAPIER_ENDPOINT=${getEnvValue('MCP_ZAPIER_ENDPOINT') || ''}
 MCP_CONTEXT7_ENDPOINT=${getEnvValue('MCP_CONTEXT7_ENDPOINT') || ''}
 MCP_21ST_DEV_ENDPOINT=${getEnvValue('MCP_21ST_DEV_ENDPOINT') || ''}
 MCP_BRAVE_SEARCH_ENDPOINT=${getEnvValue('MCP_BRAVE_SEARCH_ENDPOINT') || ''}

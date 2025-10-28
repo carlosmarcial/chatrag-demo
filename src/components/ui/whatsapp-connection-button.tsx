@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { WhatsAppQRModal } from './whatsapp-qr-modal';
 import { WhatsAppStatusModal } from './whatsapp-status-modal';
 import { useLanguage } from '@/components/providers/language-provider';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface WhatsAppSession {
   id: string;
@@ -17,12 +18,17 @@ interface WhatsAppSession {
   updatedAt?: string;
 }
 
-export function WhatsAppConnectionButton() {
+interface WhatsAppConnectionButtonProps {
+  demoMode?: boolean;
+}
+
+export function WhatsAppConnectionButton({ demoMode = false }: WhatsAppConnectionButtonProps) {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<WhatsAppSession | null>(null);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const [isWhatsAppEnabled, setIsWhatsAppEnabled] = useState<boolean | null>(null);
 
   // Function to fetch WhatsApp config
@@ -317,7 +323,15 @@ export function WhatsAppConnectionButton() {
   return (
     <>
       <button
-        onClick={isConnected || isDisconnected ? () => setShowStatusModal(true) : handleConnect}
+        onClick={() => {
+          if (demoMode) {
+            setShowDemoModal(true);
+          } else if (isConnected || isDisconnected) {
+            setShowStatusModal(true);
+          } else {
+            handleConnect();
+          }
+        }}
         disabled={isLoading}
         className={getButtonStyle()}
       >
@@ -342,6 +356,23 @@ export function WhatsAppConnectionButton() {
           onDisconnect={handleDisconnect}
         />
       )}
+
+      {/* Demo restriction modal */}
+      <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>WhatsApp Integration Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>This feature is only available in the full version of ChatRAG.</div>
+              <div className="text-sm text-muted-foreground">
+                Connect your RAG chatbot to WhatsApp for yourself or your clients. Deploy AI-powered customer support, automated responses, and intelligent conversations directly through WhatsApp with the full version of ChatRAG.
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

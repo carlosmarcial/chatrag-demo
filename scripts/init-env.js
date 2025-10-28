@@ -340,7 +340,6 @@ LLAMACLOUD_OUTPUT_TABLES_AS_HTML=true
 # -----------------------------
 # MCP CONFIGURATION
 # -----------------------------
-MCP_ZAPIER_ENDPOINT=
 MCP_CUSTOM_SERVERS=[]
 
 # -----------------------------

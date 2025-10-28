@@ -276,15 +276,9 @@ export class UniversalMcpDiscovery {
     }
 
     try {
-      // Zapier requires both application/json and text/event-stream in Accept header
-      const headers = health.name === 'Zapier' 
-        ? { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json, text/event-stream'
-          }
-        : { 
-            'Content-Type': 'application/json' 
-          };
+      const headers = { 
+        'Content-Type': 'application/json' 
+      };
       
       const client = await experimental_createMCPClient({
         transport: { 
@@ -315,15 +309,6 @@ export class UniversalMcpDiscovery {
   private async getServerEndpoints() {
     const endpoints = [];
     const env = process.env;
-
-    // Built-in endpoints
-    if (env.MCP_ZAPIER_ENDPOINT) {
-      endpoints.push({ 
-        name: 'Zapier', 
-        id: 'zapier',
-        url: env.MCP_ZAPIER_ENDPOINT 
-      });
-    }
 
     // Custom servers from config
     try {
@@ -360,15 +345,9 @@ export class UniversalMcpDiscovery {
     try {
       devLog.verbose(`[Universal Discovery] Testing server: ${endpoint.name}`);
       
-      // Zapier requires both application/json and text/event-stream in Accept header
-      const headers = endpoint.name === 'Zapier' 
-        ? { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json, text/event-stream'
-          }
-        : { 
-            'Content-Type': 'application/json' 
-          };
+      const headers = { 
+        'Content-Type': 'application/json' 
+      };
       
       const client = await experimental_createMCPClient({
         transport: { 

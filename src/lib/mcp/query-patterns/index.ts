@@ -4,7 +4,6 @@
  */
 
 import { McpServerPatterns, PatternMatch } from './base';
-import { zapierPatterns } from './servers/zapier';
 
 // Import additional server patterns here as they are added
 // Example: import { slackPatterns } from './servers/slack';
@@ -14,7 +13,6 @@ import { zapierPatterns } from './servers/zapier';
  * Add new servers to this array as they are implemented
  */
 const serverPatterns: McpServerPatterns[] = [
-  zapierPatterns,
   // Add more server patterns here
   // slackPatterns,
   // notionPatterns,
