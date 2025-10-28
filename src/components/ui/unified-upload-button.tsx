@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { ProcessedDocument } from './permanent-doc-upload-button';
@@ -165,63 +166,51 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
             padding: '8px',
             backgroundColor: dropdownBgColor
           }}>
-            <div
-              onClick={(e) => {
+            <DropdownMenuItem
+              onSelect={(e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                console.log('[Upload Image Click] demoMode:', demoMode);
+                console.log('[Upload Image Select] demoMode:', demoMode);
                 if (demoMode) {
-                  console.log('[Upload Image] Showing demo modal');
                   setIsOpen(false);
-                  setTimeout(() => setShowDemoModal(true), 100);
+                  setTimeout(() => setShowDemoModal(true), 50);
                 } else {
-                  console.log('[Upload Image] Opening file picker');
                   imageInputRef.current?.click();
                 }
               }}
-              onMouseEnter={() => setHoveredItem('image')}
-              onMouseLeave={() => setHoveredItem(null)}
-              className="flex items-center gap-2 cursor-pointer text-sm w-full"
+              className="flex items-center gap-2 text-sm w-full"
               style={{
                 backgroundColor: hoveredItem === 'image' ? hoverColor : 'transparent',
                 padding: '12px 16px',
                 margin: '2px 0',
-                borderRadius: '8px',
                 color: textColor
               }}
             >
               <ImageUp className="h-[18px] w-[18px] flex-shrink-0" style={{ color: iconColor }} />
               <span>{t('uploadImage')}</span>
-            </div>
+            </DropdownMenuItem>
             
-            <div
-              onClick={(e) => {
+            <DropdownMenuItem
+              onSelect={(e) => {
                 e.preventDefault();
-                e.stopPropagation();
-                console.log('[Upload Document Click] demoMode:', demoMode);
+                console.log('[Upload Document Select] demoMode:', demoMode);
                 if (demoMode) {
-                  console.log('[Upload Document] Showing demo modal');
                   setIsOpen(false);
-                  setTimeout(() => setShowDemoModal(true), 100);
+                  setTimeout(() => setShowDemoModal(true), 50);
                 } else {
-                  console.log('[Upload Document] Opening file picker');
                   docInputRef.current?.click();
                 }
               }}
-              onMouseEnter={() => setHoveredItem('document')}
-              onMouseLeave={() => setHoveredItem(null)}
-              className="flex items-center gap-2 cursor-pointer text-sm w-full"
+              className="flex items-center gap-2 text-sm w-full"
               style={{
                 backgroundColor: hoveredItem === 'document' ? hoverColor : 'transparent',
                 padding: '12px 16px',
                 margin: '2px 0',
-                borderRadius: '8px',
                 color: textColor
               }}
             >
               <FileText className="h-[18px] w-[18px] flex-shrink-0" style={{ color: iconColor }} />
               <span>{t('uploadTemporaryDocument')}</span>
-            </div>
+            </DropdownMenuItem>
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
