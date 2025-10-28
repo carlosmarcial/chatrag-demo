@@ -3650,17 +3650,10 @@ export default function Home() {
   // Handle ghost mode state changes
   useEffect(() => {
     if (isGhostMode) {
-      // Entering ghost mode - clear current chat
-      if (messagesRef.current.length > 0) {
-        setMessages([]);
-        setAiMessages([]);
-      }
-      // Set ghost chat ID as current
-      if (ghostChatId) {
-        setCurrentChat(ghostChatId);
-      }
+      // Entering ghost mode — keep current UI as-is and just show the indicator.
+      // Do NOT change currentChatId here; a ghost chat will be created on first send.
     } else {
-      // Exiting ghost mode - clear ghost messages and reset
+      // Exiting ghost mode - clear ghost messages and reset when leaving an active ghost chat
       clearGhostMessages();
       if (ghostChatId && currentChatId === ghostChatId) {
         setCurrentChat(null);
@@ -3669,9 +3662,7 @@ export default function Home() {
     }
 
     // Focus the chat input after ghost mode toggle
-    // Using requestAnimationFrame for more reliable timing
     requestAnimationFrame(() => {
-      // Double RAF to ensure DOM has fully updated
       requestAnimationFrame(() => {
         chatInputRef.current?.focus();
       });
@@ -4204,6 +4195,16 @@ export default function Home() {
                     {/* Invisible overlay */}
                   </div>
                 )}
+
+                {/* Ghost Mode Indicator - Welcome screen */}
+                <div className={cn(
+                  "z-10 mb-4 px-4",
+                  "lg:sticky lg:top-0",
+                  "sticky top-16"
+                )}>
+                  <GhostModeIndicator isActive={isGhostMode} />
+                </div>
+
                 {/* Container for welcome text and chat - positioned slightly higher */}
                 <div className="flex-1 flex flex-col items-center justify-center -mt-16 mobile-welcome-container">
                   <div className="w-full max-w-[52rem] flex flex-col items-center px-4 lg:px-0">

@@ -232,8 +232,9 @@ export function Header({ onNewChat, onToggleSidebar, isSidebarOpen }: HeaderProp
 
   const handleGhostModeToggle = () => {
     if (!isGhostMode) {
-      // Enabling ghost mode - no confirmation needed
+      // Enabling ghost mode - keep current UI state, just activate ghost mode
       toggleGhostMode();
+      // Don't navigate or clear messages - just show the indicator
     } else if (hasUnsavedGhostMessages) {
       // Disabling with unsaved messages - confirm only in this case
       const confirmDisable = window.confirm(

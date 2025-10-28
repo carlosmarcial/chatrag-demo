@@ -36,7 +36,8 @@ export const useGhostModeStore = create<GhostModeStore>((set, get) => ({
   enableGhostMode: () => {
     set({
       isGhostMode: true,
-      ghostChatId: `ghost-${Date.now()}`
+      ghostChatId: `ghost-${Date.now()}`,
+      // Don't clear messages when enabling - preserve current state
     });
     if (typeof window !== 'undefined') {
       localStorage.setItem(GHOST_MODE_KEY, 'true');
