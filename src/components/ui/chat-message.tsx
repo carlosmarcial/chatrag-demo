@@ -63,6 +63,7 @@ import { useModel } from '@/components/providers/model-provider'
 import { ImageModal } from './image-modal'
 import { SourceImagesGrid } from './source-images-grid'
 import type { SourceImageData } from '@/types/chat'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 // Define DocumentContent type that was missing
 type DocumentContent = {
@@ -3316,7 +3317,11 @@ ChatMessage = function({
   const imageRef = useRef<HTMLImageElement>(null);
   const [showRAGTooltip, setShowRAGTooltip] = useState(false);
   const [isSendingToRAG, setIsSendingToRAG] = useState(false);
+  const [showRAGDemoModal, setShowRAGDemoModal] = useState(false);
   const ragButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Demo mode flag - set to true to restrict RAG feature
+  const demoMode = true;
   
   // Comprehensive tooltip state management to prevent persistence bugs
   useEffect(() => {
@@ -3522,6 +3527,12 @@ ChatMessage = function({
   };
 
   const handleSendToRAG = async () => {
+    // Check if demo mode is enabled
+    if (demoMode) {
+      setShowRAGDemoModal(true);
+      return;
+    }
+    
     try {
       setIsSendingToRAG(true);
       
@@ -4858,6 +4869,23 @@ ChatMessage = function({
           showDownload={true}
         />
       )}
+      
+      {/* RAG Demo Restriction Modal */}
+      <Dialog open={showRAGDemoModal} onOpenChange={setShowRAGDemoModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add to RAG Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>This feature is only available in the full version of ChatRAG.</div>
+              <div className="text-sm text-muted-foreground">
+                Save AI responses directly to your knowledge base as persistent memory. This creates a searchable, retrievable context that you control. Responses are embedded in your vector database and automatically retrieved in future conversations, enabling your AI to remember and reference past insights. Unlock this powerful memory management feature with the full version of ChatRAG.
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
