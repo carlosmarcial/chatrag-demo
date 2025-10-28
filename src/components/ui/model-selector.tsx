@@ -7,6 +7,7 @@ import { useTheme } from '@/components/theme-provider';
 import { useLanguage } from '@/components/providers/language-provider';
 import { cn } from '@/lib/utils';
 import { PortalTooltip } from '@/components/ui/portal-tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 // Custom tooltip styles - matches PortalTooltip colors
 const tooltipStyles = `
@@ -46,6 +47,7 @@ export function ModelSelector() {
   const { theme, resolvedTheme } = useTheme();
   const { t } = useLanguage();
   const isDarkMode = theme === 'dark' || resolvedTheme === 'dark';
+  const [isRestrictedModalOpen, setIsRestrictedModalOpen] = React.useState(false);
   
   // Inject tooltip styles
   React.useEffect(() => {
@@ -75,26 +77,39 @@ export function ModelSelector() {
         "max-h-[14rem] overflow-y-auto",
         isDarkMode ? "dark-scrollbar" : "light-scrollbar"
       )}>
-        {AVAILABLE_MODELS.map((option) => (
-        <button
-          key={option.id}
-          onClick={() => setSelectedModel(option)}
-          className={cn(
-            "w-full text-left text-sm rounded-lg transition-colors flex items-center justify-between",
-            "hover:bg-transparent"
-          )}
-          style={{ 
-            backgroundColor: dropdownBgColor,
-            color: selectedModel?.id === option.id 
-              ? isDarkMode ? '#fff' : '#000' 
-              : isDarkMode ? '#ddd' : '#555',
-            padding: '12px 16px',
-            border: 'none',
-            margin: '2px 0'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverColor}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = dropdownBgColor}
-        >
+        {AVAILABLE_MODELS.map((option) => {
+          const isAllowed = option.id === 'openai/gpt-4.1-mini';
+          const isSelected = selectedModel?.id === option.id;
+          const textColor = isSelected
+            ? isDarkMode ? '#fff' : '#000'
+            : isDarkMode ? '#ddd' : '#555';
+          const opacity = isAllowed ? 1 : 0.5;
+
+          return (
+            <button
+              key={option.id}
+              onClick={() => {
+                if (isAllowed) {
+                  setSelectedModel(option);
+                } else {
+                  setIsRestrictedModalOpen(true);
+                }
+              }}
+              className={cn(
+                "w-full text-left text-sm rounded-lg transition-colors flex items-center justify-between",
+                "hover:bg-transparent"
+              )}
+              style={{
+                backgroundColor: dropdownBgColor,
+                color: textColor,
+                padding: '12px 16px',
+                border: 'none',
+                margin: '2px 0',
+                opacity: opacity
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = hoverColor}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = dropdownBgColor}
+            >
           <div className="flex items-center gap-2">
             <span className="flex-shrink-0">{option.displayName}</span>
             {option.supportsReasoning && (
@@ -130,14 +145,25 @@ export function ModelSelector() {
               </div>
             )}
           </div>
-          {selectedModel?.id === option.id && (
-            <div className="flex-shrink-0 flex items-center justify-center">
-              <Check className="h-4 w-4" style={{ color: checkColor }} />
-            </div>
-          )}
-        </button>
-        ))}
+              {selectedModel?.id === option.id && (
+                <div className="flex-shrink-0 flex items-center justify-center">
+                  <Check className="h-4 w-4" style={{ color: checkColor }} />
+                </div>
+              )}
+            </button>
+          );
+        })}
       </div>
+      <Dialog open={isRestrictedModalOpen} onOpenChange={setIsRestrictedModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Model Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription>
+            {t('restrictedModelMessage')}
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 
