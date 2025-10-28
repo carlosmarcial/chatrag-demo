@@ -6,6 +6,7 @@ import { useAdminStore } from '@/lib/admin-store';
 import { useLanguage } from '@/components/providers/language-provider';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 // Custom comparison function for memo optimization
 const areEqual = (prevProps: any, nextProps: any) => {
@@ -25,7 +26,11 @@ export const AdminTab = memo(function AdminTab() {
   const [isAdminVerifying, setIsAdminVerifying] = useState(false);
   const [adminVerificationSuccess, setAdminVerificationSuccess] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const { t } = useLanguage();
+  
+  // Demo mode flag - set to true to restrict admin access
+  const demoMode = true;
 
   // Check admin status when component mounts
   useEffect(() => {
@@ -40,6 +45,12 @@ export const AdminTab = memo(function AdminTab() {
 
   // Handle admin verification
   const handleAdminVerification = useCallback(async () => {
+    // Check if demo mode is enabled
+    if (demoMode) {
+      setShowDemoModal(true);
+      return;
+    }
+    
     setIsAdminVerifying(true);
     setAdminError('');
     
@@ -195,6 +206,23 @@ export const AdminTab = memo(function AdminTab() {
           </div>
         )}
       </div>
+      
+      {/* Admin Demo Restriction Modal */}
+      <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Admin Access Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>This feature is only available in the full version of ChatRAG.</div>
+              <div className="text-sm text-muted-foreground">
+                Admin access grants you elevated permissions to manage your ChatRAG instance. This includes access to the Document Dashboard for managing all uploaded documents, viewing system analytics, configuring advanced settings, and controlling user permissions. Admin features enable full control over your knowledge base, RAG pipeline configuration, and system-wide customization. Unlock these powerful administrative capabilities with the full version of ChatRAG.
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }, areEqual);
