@@ -166,12 +166,14 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
             backgroundColor: dropdownBgColor
           }}>
             <div
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log('[Upload Image Click] demoMode:', demoMode);
                 if (demoMode) {
                   console.log('[Upload Image] Showing demo modal');
                   setIsOpen(false);
-                  setShowDemoModal(true);
+                  setTimeout(() => setShowDemoModal(true), 100);
                 } else {
                   console.log('[Upload Image] Opening file picker');
                   imageInputRef.current?.click();
@@ -193,12 +195,14 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
             </div>
             
             <div
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log('[Upload Document Click] demoMode:', demoMode);
                 if (demoMode) {
                   console.log('[Upload Document] Showing demo modal');
                   setIsOpen(false);
-                  setShowDemoModal(true);
+                  setTimeout(() => setShowDemoModal(true), 100);
                 } else {
                   console.log('[Upload Document] Opening file picker');
                   docInputRef.current?.click();
