@@ -4120,6 +4120,11 @@ export default function Home() {
             }}
           />
           <div className="flex-1 flex flex-col group/chat relative">
+            {/* Global Ghost Mode Indicator under header */}
+            <div className="fixed top-0 left-0 right-0 z-[60] flex justify-center px-4 pointer-events-none">
+              <GhostModeIndicator isActive={isGhostMode} />
+            </div>
+
             {/* Chat switching transition overlay - completely invisible, just blocks interaction */}
             {!isInitialView ? (
               <div className="flex-1 relative">
@@ -4146,15 +4151,6 @@ export default function Home() {
                       style={{ willChange: 'opacity, transform' }}
                       className="w-full max-w-[52rem] mx-auto pt-0 pb-[120px] relative"
                     >
-                    {/* Ghost Mode Indicator - Responsive positioning */}
-                    <div className={cn(
-                      "z-10 mb-4 px-4",
-                      "lg:sticky lg:top-0", // Desktop: sticky at top of chat area
-                      "sticky top-16" // Mobile: sticky below header (header is h-16 = 4rem = 64px)
-                    )}>
-                      <GhostModeIndicator isActive={isGhostMode} />
-                    </div>
-
                     <div className="space-y-0.5" ref={messageContainerRef}>
                       {displayMessages.map((message, index) => {
                         const isLastAssistantMessage = index === displayMessages.length - 1 && message.role === 'assistant';
@@ -4195,15 +4191,6 @@ export default function Home() {
                     {/* Invisible overlay */}
                   </div>
                 )}
-
-                {/* Ghost Mode Indicator - Welcome screen */}
-                <div className={cn(
-                  "z-10 mb-4 px-4",
-                  "lg:sticky lg:top-0",
-                  "sticky top-16"
-                )}>
-                  <GhostModeIndicator isActive={isGhostMode} />
-                </div>
 
                 {/* Container for welcome text and chat - positioned slightly higher */}
                 <div className="flex-1 flex flex-col items-center justify-center -mt-16 mobile-welcome-container">
