@@ -4691,49 +4691,22 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                         )}
                         
                         {THREE_D_GENERATION_ENABLED && (
-                          <div style={{ position: 'relative', display: 'inline-block' }}>
-                            <div
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                showDemoModal();
-                              }}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              onMouseUp={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              style={{
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
-                                right: 0,
-                                bottom: 0,
-                                zIndex: 10,
-                                cursor: 'pointer'
-                              }}
-                            />
-                            <div style={{ pointerEvents: 'none' }}>
-                              <ThreeDGenerationButton
-                                disabled={parentIsLoading || isProcessingDoc}
-                                hasDocumentContext={Boolean(tempDoc)}
-                                onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
-                                  handleThreeDGenSettingsChange(
-                                    textureSize,
-                                    meshSimplify,
-                                    ssSamplingSteps,
-                                    texturedMesh,
-                                    useContext,
-                                    imageFiles
-                                  );
-                                })}
-                                isActive={Boolean(threeDGenSettings)}
-                              />
-                            </div>
-                          </div>
+                          <ThreeDGenerationButton
+                            disabled={parentIsLoading || isProcessingDoc}
+                            hasDocumentContext={Boolean(tempDoc)}
+                            onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
+                              handleThreeDGenSettingsChange(
+                                textureSize,
+                                meshSimplify,
+                                ssSamplingSteps,
+                                texturedMesh,
+                                useContext,
+                                imageFiles
+                              );
+                            })}
+                            isActive={Boolean(threeDGenSettings)}
+                            demoMode={true}
+                          />
                         )}
                         
                         {/* Add MCP Tools Button */}

@@ -16,6 +16,7 @@ interface ThreeDGenerationButtonProps {
     imageFiles?: File[]
   ) => void;
   isActive?: boolean;
+  demoMode?: boolean;
 }
 
 // Default settings for 3D generation
@@ -42,6 +43,7 @@ export function ThreeDGenerationButton({
   hasDocumentContext = false,
   onThreeDGenerate,
   isActive = false,
+  demoMode = false,
 }: ThreeDGenerationButtonProps) {
   const [isConfigured, setIsConfigured] = useState(isActive);
   const [isHovered, setIsHovered] = useState(false);
@@ -90,19 +92,33 @@ export function ThreeDGenerationButton({
       return;
     }
 
+    // In demo mode, don't create file input
+    if (demoMode) {
+      // Just call the handler with demo data to trigger the wrapped function
+      onThreeDGenerate(
+        2048, // Default textureSize
+        0.9,  // Default meshSimplify
+        38,   // Default ssSamplingSteps
+        false, // Default texturedMesh
+        hasDocumentContext, // useContext if we have a document context
+        [] // Empty array for demo
+      );
+      return;
+    }
+
     // Create a file input element (allow multiple images)
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.multiple = true;
     fileInput.style.display = 'none';
-    
+
     // Add a change event listener
     fileInput.addEventListener('change', (event) => {
       const target = event.target as HTMLInputElement;
       if (target.files && target.files.length) {
         const files: File[] = Array.from(target.files);
-        
+
         // Pass all selected files to the parent handler (first argument list unchanged, extra param is files array)
         onThreeDGenerate(
           2048, // Default textureSize
@@ -112,15 +128,15 @@ export function ThreeDGenerationButton({
           hasDocumentContext, // useContext if we have a document context
           files // NEW: pass array of files
         );
-        
+
         setIsConfigured(true);
         setWasRecentlyActive(true);
       }
-      
+
       // Remove the input element after use
       document.body.removeChild(fileInput);
     });
-    
+
     // Append to body and trigger click
     document.body.appendChild(fileInput);
     fileInput.click();
