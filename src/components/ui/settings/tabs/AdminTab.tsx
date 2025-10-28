@@ -217,7 +217,7 @@ export const AdminTab = memo(function AdminTab() {
             <div className="space-y-3">
               <div>This feature is only available in the full version of ChatRAG.</div>
               <div className="text-sm text-muted-foreground">
-                Admin access grants you elevated permissions to manage your ChatRAG instance. This includes access to the Document Dashboard for managing all uploaded documents, viewing system analytics, configuring advanced settings, and controlling user permissions. Admin features enable full control over your knowledge base, RAG pipeline configuration, and system-wide customization. Unlock these powerful administrative capabilities with the full version of ChatRAG.
+                Admin access allows you to add new documents to the RAG knowledge base directly from the UI. Upload and manage permanent documents that become part of your AI's memory, accessible across all conversations. Unlock this capability with the full version of ChatRAG.
               </div>
             </div>
           </DialogDescription>
