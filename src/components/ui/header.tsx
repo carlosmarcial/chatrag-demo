@@ -479,7 +479,7 @@ export function Header({ onNewChat, onToggleSidebar, isSidebarOpen }: HeaderProp
               
               {!isAuthPage && (!isAuthEnabled || user) && (
                 <>
-                  <ShareChatButton />
+                  <ShareChatButton demoMode={true} />
                   <PermanentDocUploadButton
                     disabled={isPermanentDocProcessing}
                     isActive={Boolean(permanentDoc)}

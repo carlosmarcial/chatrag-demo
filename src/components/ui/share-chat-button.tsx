@@ -21,13 +21,15 @@ import { PortalTooltip } from './portal-tooltip';
 
 interface ShareChatButtonProps {
   className?: string;
+  demoMode?: boolean;
 }
 
-export function ShareChatButton({ className }: ShareChatButtonProps) {
+export function ShareChatButton({ className, demoMode = false }: ShareChatButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const { theme } = useTheme();
   const { currentChatId, chats } = useChatStore(
     useShallow((s) => ({ currentChatId: s.currentChatId, chats: s.chats }))
@@ -48,22 +50,14 @@ export function ShareChatButton({ className }: ShareChatButtonProps) {
     // setIsOpen(false); // Uncomment if you want the dialog to close on chat switch
   }, [currentChatId]);
 
-  // Determine if the share button should be shown
-  // Share button should only appear when:
-  // 1. There is a current chat ID
-  // 2. NOT in ghost mode (incognito)
-  // 3. The chat is actually saved (exists in the chats array)
-  // 4. The chat ID is not a ghost/temporary ID (doesn't start with 'ghost-')
+  // In demo mode, always show the button (regardless of chat state)
+  // In normal mode, only show when there's a valid saved chat
   const currentChat = currentChatId ? chats.find(chat => chat.id === currentChatId) : null;
   const isGhostChat = currentChatId?.startsWith('ghost-');
   const isSavedChat = Boolean(currentChat && !isGhostChat);
   
-  // Don't render if any of these conditions are true:
-  // - No chat ID
-  // - In ghost mode
-  // - Chat is not saved (not in chats array)
-  // - Chat ID is a ghost/temporary ID
-  if (!currentChatId || isGhostMode || !isSavedChat) {
+  // Don't render in ghost mode
+  if (isGhostMode) {
     return null;
   }
 
@@ -122,8 +116,14 @@ export function ShareChatButton({ className }: ShareChatButtonProps) {
     <>
       <PortalTooltip content={t('shareChat')}>
         <button
-          onClick={() => setIsOpen(true)}
-          disabled={!currentChatId}
+          onClick={() => {
+            if (demoMode) {
+              setShowDemoModal(true);
+            } else {
+              setIsOpen(true);
+            }
+          }}
+          disabled={!demoMode && !currentChatId}
           className={cn(
             "flex items-center justify-center w-10 h-10 text-gray-700 dark:text-gray-200 bg-transparent hover:bg-[#FFE0D0] dark:bg-transparent dark:hover:bg-[#424242] transition-colors backdrop-blur-md rounded-lg",
             className
@@ -177,6 +177,23 @@ export function ShareChatButton({ className }: ShareChatButtonProps) {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Demo restriction modal */}
+      <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
+        <DialogContent className="sm:max-w-md bg-[#FFFAF5] dark:bg-[#212121]">
+          <DialogHeader>
+            <DialogTitle>Share Chat Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>This feature is only available in the full version of ChatRAG.</div>
+              <div className="text-sm text-muted-foreground">
+                Share your conversations via public links with the full version of ChatRAG. This feature requires user authentication and saved chats, which are included in the complete ChatRAG package.
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </>
   );
-} 
+}
