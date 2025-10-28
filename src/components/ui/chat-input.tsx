@@ -4691,21 +4691,38 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                         )}
                         
                         {THREE_D_GENERATION_ENABLED && (
-                          <ThreeDGenerationButton
-                            disabled={parentIsLoading || isProcessingDoc}
-                            hasDocumentContext={Boolean(tempDoc)}
-                            onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
-                              handleThreeDGenSettingsChange(
-                                textureSize,
-                                meshSimplify,
-                                ssSamplingSteps,
-                                texturedMesh,
-                                useContext,
-                                imageFiles
-                              );
-                            })}
-                            isActive={Boolean(threeDGenSettings)}
-                          />
+                          <div
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              showDemoModal();
+                              return false;
+                            }}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                            }}
+                            style={{
+                              cursor: 'pointer',
+                              display: 'inline-block'
+                            }}
+                          >
+                            <ThreeDGenerationButton
+                              disabled={parentIsLoading || isProcessingDoc}
+                              hasDocumentContext={Boolean(tempDoc)}
+                              onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
+                                handleThreeDGenSettingsChange(
+                                  textureSize,
+                                  meshSimplify,
+                                  ssSamplingSteps,
+                                  texturedMesh,
+                                  useContext,
+                                  imageFiles
+                                );
+                              })}
+                              isActive={Boolean(threeDGenSettings)}
+                            />
+                          </div>
                         )}
                         
                         {/* Add MCP Tools Button */}
