@@ -31,13 +31,16 @@ export function UserMenu({ email, onSignOut }: UserMenuProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const { t } = useLanguage();
   
+  // Demo mode flag - set to true to use generic icon and hide logout
+  const demoMode = true;
+  
   // Define colors to match other dropdown menus
   const dropdownBgColor = isDarkMode ? '#2F2F2F' : '#EFE1D5';
   const hoverColor = isDarkMode ? '#424242' : '#E5D6C9';
   const textColor = isDarkMode ? '#E6E6E6' : '#444';
   
-  // Get first two letters of email if available
-  const initials = email
+  // Get first two letters of email if available (disabled in demo mode)
+  const initials = !demoMode && email
     ? email.split('@')[0].slice(0, 2).toUpperCase()
     : null;
 
@@ -155,7 +158,7 @@ export function UserMenu({ email, onSignOut }: UserMenuProps) {
               <span>{t('settings')}</span>
             </div>
             
-            {email && onSignOut && (
+            {!demoMode && email && onSignOut && (
               <div
                 onMouseEnter={() => setHoveredItem('logout')}
                 onMouseLeave={() => setHoveredItem(null)}
