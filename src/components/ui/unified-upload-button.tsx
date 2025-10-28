@@ -30,6 +30,9 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  
+  // Debug logging
+  console.log('[UnifiedUploadButton] demoMode:', demoMode);
   const { theme, resolvedTheme } = useTheme();
   const isDarkMode = theme === 'dark' || resolvedTheme === 'dark';
   const { t } = useLanguage();
@@ -164,10 +167,13 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
           }}>
             <div
               onClick={() => {
+                console.log('[Upload Image Click] demoMode:', demoMode);
                 if (demoMode) {
+                  console.log('[Upload Image] Showing demo modal');
                   setIsOpen(false);
                   setShowDemoModal(true);
                 } else {
+                  console.log('[Upload Image] Opening file picker');
                   imageInputRef.current?.click();
                 }
               }}
@@ -188,10 +194,13 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
             
             <div
               onClick={() => {
+                console.log('[Upload Document Click] demoMode:', demoMode);
                 if (demoMode) {
+                  console.log('[Upload Document] Showing demo modal');
                   setIsOpen(false);
                   setShowDemoModal(true);
                 } else {
+                  console.log('[Upload Document] Opening file picker');
                   docInputRef.current?.click();
                 }
               }}
