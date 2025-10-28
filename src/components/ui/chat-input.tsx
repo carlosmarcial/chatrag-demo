@@ -4696,32 +4696,33 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                               e.preventDefault();
                               e.stopPropagation();
                               showDemoModal();
-                              return false;
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
                             }}
                             style={{
                               cursor: 'pointer',
-                              display: 'inline-block'
+                              display: 'inline-block',
+                              position: 'relative'
                             }}
                           >
-                            <ThreeDGenerationButton
-                              disabled={parentIsLoading || isProcessingDoc}
-                              hasDocumentContext={Boolean(tempDoc)}
-                              onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
-                                handleThreeDGenSettingsChange(
-                                  textureSize,
-                                  meshSimplify,
-                                  ssSamplingSteps,
-                                  texturedMesh,
-                                  useContext,
-                                  imageFiles
-                                );
-                              })}
-                              isActive={Boolean(threeDGenSettings)}
-                            />
+                            <div style={{
+                              pointerEvents: 'none',
+                              opacity: 1 // Keep full opacity
+                            }}>
+                              <ThreeDGenerationButton
+                                disabled={parentIsLoading || isProcessingDoc}
+                                hasDocumentContext={Boolean(tempDoc)}
+                                onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
+                                  handleThreeDGenSettingsChange(
+                                    textureSize,
+                                    meshSimplify,
+                                    ssSamplingSteps,
+                                    texturedMesh,
+                                    useContext,
+                                    imageFiles
+                                  );
+                                })}
+                                isActive={Boolean(threeDGenSettings)}
+                              />
+                            </div>
                           </div>
                         )}
                         
