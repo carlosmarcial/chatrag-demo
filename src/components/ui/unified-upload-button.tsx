@@ -31,6 +31,7 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showImageDemoModal, setShowImageDemoModal] = useState(false);
   
   // Debug logging
   console.log('[UnifiedUploadButton] demoMode:', demoMode);
@@ -172,7 +173,7 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
                 console.log('[Upload Image Select] demoMode:', demoMode);
                 if (demoMode) {
                   setIsOpen(false);
-                  setTimeout(() => setShowDemoModal(true), 50);
+                  setTimeout(() => setShowImageDemoModal(true), 50);
                 } else {
                   imageInputRef.current?.click();
                 }
@@ -215,7 +216,24 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Demo restriction modal */}
+      {/* Image upload demo restriction modal */}
+      <Dialog open={showImageDemoModal} onOpenChange={setShowImageDemoModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Image Upload Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>This feature is only available in the full version of ChatRAG.</div>
+              <div className="text-sm text-muted-foreground">
+                Upload images to use as context in your conversations. The AI can analyze, describe, and answer questions about your images with vision capabilities. Unlock this powerful multimodal feature with the full version of ChatRAG.
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
+
+      {/* Document upload demo restriction modal */}
       <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -225,7 +243,7 @@ export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUploa
             <div className="space-y-3">
               <div>This feature is only available in the full version of ChatRAG.</div>
               <div className="text-sm text-muted-foreground">
-                Upload and chat with any document using advanced RAG technology. Process PDFs, Word docs, images, and more. Extract insights, get answers, and interact with your documents like never before with the full version of ChatRAG.
+                Upload and chat with any document using advanced RAG technology. Process PDFs, Word docs, text files, and more. Extract insights, get answers, and interact with your documents like never before with the full version of ChatRAG.
               </div>
             </div>
           </DialogDescription>

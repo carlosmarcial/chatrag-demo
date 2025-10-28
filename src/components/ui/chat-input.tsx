@@ -4573,7 +4573,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                     <UnifiedUploadButton
                     disabled={parentIsLoading || isProcessingDoc || Boolean(file)}
                     demoMode={true}
-                    onTempDocUpload={wrapHandler(handleTempDocUpload)}
+                    onTempDocUpload={handleTempDocUpload}
                       onProcessingStateChange={(state) => {
                         if (state.isProcessing) {
                           setProcessingDoc({ 
