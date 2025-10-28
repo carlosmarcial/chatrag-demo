@@ -326,6 +326,10 @@ export default function Home() {
   // State for runtime suggestions configuration
   const [showSuggestionsEnabled, setShowSuggestionsEnabled] = useState<boolean | null>(null);
 
+  // State for create chat title modal
+  const [isCreateTitleModalOpen, setIsCreateTitleModalOpen] = useState(false);
+  const [pendingChatTitle, setPendingChatTitle] = useState('');
+
   // For tracking video generation settings
   const [videoGenerationSettings, setVideoGenerationSettings] = useState<VideoGenerationSettings>({
     isActive: false
@@ -3620,6 +3624,13 @@ export default function Home() {
       clearTimeout(globalTimeout);
     };
   }, [isStreaming, resetStreamingState]);
+
+  // Clear session chats on refresh for demo mode
+  useEffect(() => {
+    if (!user && typeof window !== 'undefined') {
+      sessionStorage.removeItem('demo-chats');
+    }
+  }, [user]);
 
   // Fetch chats when the component mounts
   useEffect(() => {

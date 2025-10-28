@@ -94,6 +94,12 @@ const emitChatEvent = (eventName: string, chatData: any) => {
   }, 50); // 50ms debounce
 };
 
+// Helper function to check if we're in demo mode (no auth)
+async function isDemoMode(): Promise<boolean> {
+  // Force demo mode to prevent saving chats to database
+  return true;
+}
+
 // Helper function to update chat title in database
 async function updateChatTitle(chatId: string, newTitle: string, userId: string, set: any) {
   try {
@@ -236,24 +242,51 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   filteredChats: [],
 
   fetchChats: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      // Fetch initial page with higher limit for sidebar
-      const response = await fetch('/api/chats?page=1&limit=50', {
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch chats');
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Demo mode - loading chats from sessionStorage');
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = sessionStorage.getItem('demo-chats');
+          const chats = stored ? JSON.parse(stored) : [];
+          set({
+            chats,
+            filteredChats: []
+          });
+          return chats;
+        } catch (error) {
+          console.error('Error loading chats from sessionStorage:', error);
+          set({
+            chats: [],
+            filteredChats: []
+          });
+          return [];
+        }
       }
+      set({
+        chats: [],
+        filteredChats: []
+      });
+      return [];
+    }
 
-      const { chats, pagination } = await response.json();
+    set({ isLoading: true, error: null });
+  try {
+      // Fetch initial page with higher limit for sidebar
+  const response = await fetch('/api/chats?page=1&limit=50', {
+        credentials: 'include',
+  });
 
-      // Debug: Logging chat IDs for verification
+  if (!response.ok) {
+    const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch chats');
+  }
 
-      set({ 
-        chats: chats || [],
+    const { chats, pagination } = await response.json();
+
+  // Debug: Logging chat IDs for verification
+
+  set({
+      chats: chats || [],
         filteredChats: get().searchQuery ? get().filteredChats : []
       });
 
@@ -268,20 +301,28 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   fetchFolders: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await fetch('/api/folders', {
-        credentials: 'include',
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Demo mode - not fetching folders from database');
+      set({
+        folders: []
       });
+      return [];
+    }
+
+    set({ isLoading: true, error: null });
+  try {
+  const response = await fetch('/api/folders', {
+    credentials: 'include',
+  });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch folders');
-      }
+    const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch folders');
+  }
 
-      const { folders } = await response.json();
-      
-      set({ 
+    const { folders } = await response.json();
+
+    set({
         folders: folders || []
       });
 
@@ -298,11 +339,46 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     // Debug: createChat called with messages
     console.log('[ChatStore] createChat called with', messages.length, 'messages');
 
-    // Check if in ghost mode - don't persist to database
-    if (isInGhostMode()) {
-      console.log('[ChatStore] Ghost mode active - not persisting chat to database');
+    if (await isDemoMode() || isInGhostMode()) {
+      console.log('[ChatStore] Demo mode or ghost mode active - SKIPPING DATABASE SAVE');
       const ghostId = `ghost-${Date.now()}`;
-      set({ currentChatId: ghostId });
+
+      // Use original messages for demo mode
+      const processedMessages = messages;
+
+      // Create a temporary chat object for local state
+      const tempChat = {
+      id: ghostId,
+      title: generateTitleWithToolCallSupport(processedMessages, ghostId),
+      messages: processedMessages,
+      user_id: 'demo-user', // Dummy user ID that won't match auth.uid()
+      folder_id: folderId || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      };
+
+      // Add to local chats array
+      set((state) => {
+        const newChats = [tempChat, ...state.chats];
+        // Save to sessionStorage
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('demo-chats', JSON.stringify(newChats));
+        }
+        return {
+          chats: newChats,
+          currentChatId: ghostId,
+          filteredChats: state.searchQuery ?
+            [tempChat, ...state.filteredChats] :
+            state.filteredChats
+        };
+      });
+
+      console.log('[ChatStore] Demo chat created and added to sidebar:', {
+        id: ghostId,
+        title: tempChat.title,
+        messageCount: tempChat.messages.length
+      });
+
       return ghostId;
     }
 
@@ -478,9 +554,51 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   updateChat: async (chatId: string | null, messages: DBMessage[]) => {
     if (!chatId) return;
 
-    // Check if in ghost mode - don't persist to database
-    if (isInGhostMode()) {
-      console.log('[ChatStore] Ghost mode active - not updating chat in database');
+    if (await isDemoMode() || isInGhostMode()) {
+      console.log('[ChatStore] Demo mode or ghost mode active - SKIPPING DATABASE UPDATE');
+      // Update local state instead
+      const processedMessages = messages;
+
+      if (processedMessages.length === 0) {
+        return;
+      }
+
+      const hasAssistantMessage = processedMessages.some(msg => msg.role === 'assistant');
+
+      let title = generateTitleWithToolCallSupport(
+        processedMessages,
+        chatId
+      );
+
+      title = cleanMarkdown(title);
+
+      // Get existing chat to preserve folder_id and created_at
+      const state = get();
+      const existingChat = state.chats.find(c => c.id === chatId);
+
+      const updatedChat = {
+        id: chatId,
+        title,
+        messages: processedMessages,
+        user_id: null,
+        folder_id: existingChat?.folder_id || null,
+        created_at: existingChat?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      updateLocalChatState(set, updatedChat);
+      // Save to sessionStorage
+      if (typeof window !== 'undefined') {
+        set((state) => {
+          sessionStorage.setItem('demo-chats', JSON.stringify(state.chats));
+          return {};
+        });
+      }
+      console.log('[ChatStore] Demo chat updated in sidebar:', {
+        id: chatId,
+        title: updatedChat.title,
+        messageCount: updatedChat.messages.length
+      });
       return;
     }
 
@@ -571,6 +689,28 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   deleteChat: async (chatId: string) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - removing chat from local state only');
+      set((state) => {
+        // If we're deleting the current chat, remove it from localStorage
+        if (state.currentChatId === chatId && typeof window !== 'undefined') {
+          localStorage.removeItem(CURRENT_CHAT_KEY);
+        }
+
+        const newChats = state.chats.filter((chat) => chat.id !== chatId);
+        // Save to sessionStorage
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('demo-chats', JSON.stringify(newChats));
+        }
+
+        return {
+          chats: newChats,
+          currentChatId: state.currentChatId === chatId ? null : state.currentChatId,
+        };
+      });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -644,16 +784,26 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   renameChat: async (chatId: string, newTitle: string) => {
-    set({ isLoading: true, error: null });
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+    if (await isDemoMode()) {
+  console.log('[ChatStore] Auth disabled - updating chat title in local state only');
+      set((state) => ({
+    chats: state.chats.map((chat) =>
+    chat.id === chatId ? { ...chat, title: newTitle } : chat
+  ),
+  }));
+  return;
+    }
 
-      const { error } = await supabase
-        .from('chats')
-        .update({ title: newTitle })
-        .eq('id', chatId)
-        .eq('user_id', user.id);
+    set({ isLoading: true, error: null });
+  try {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+      .from('chats')
+    .update({ title: newTitle })
+      .eq('id', chatId)
+    .eq('user_id', user.id);
 
       if (error) throw error;
 
@@ -695,13 +845,30 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   togglePinChat: async (chatId: string) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - updating chat pin in local state only');
+      const { chats } = get();
+      const chat = chats.find(c => c.id === chatId);
+      if (!chat) return;
+
+      const updatedPinned = !chat.pinned;
+      set({
+        chats: chats.map(c =>
+          c.id === chatId
+            ? { ...c, pinned: updatedPinned }
+            : c
+        )
+      });
+      return;
+    }
+
     const { chats } = get();
     const chat = chats.find(c => c.id === chatId);
     if (!chat) return;
 
     try {
       const updatedPinned = !chat.pinned;
-      
+
       // Update in the database
       const { error } = await supabase
         .from('chats')
@@ -712,9 +879,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       // Update local state
       set({
-        chats: chats.map(c => 
-          c.id === chatId 
-            ? { ...c, pinned: updatedPinned } 
+        chats: chats.map(c =>
+          c.id === chatId
+            ? { ...c, pinned: updatedPinned }
             : c
         )
       });
@@ -742,6 +909,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   // Folder management methods
   createFolder: async (input: CreateFolderInput) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - creating folder in local state only');
+      const tempFolderId = `folder-${Date.now()}`;
+      const newFolder = {
+        id: tempFolderId,
+        ...input,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      set((state) => ({
+        folders: [...state.folders, newFolder]
+      }));
+      return tempFolderId;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -775,6 +957,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   updateFolder: async (folderId: string, input: UpdateFolderInput) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - updating folder in local state only');
+      set((state) => ({
+        folders: state.folders.map((folder) =>
+          folder.id === folderId ? { ...folder, ...input } : folder
+        ),
+      }));
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -805,6 +997,22 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   deleteFolder: async (folderId: string, deleteChats: boolean = false) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - deleting folder in local state only');
+      set((state) => ({
+        folders: state.folders.filter(folder => folder.id !== folderId),
+        // If we deleted chats too, remove them from state
+        chats: deleteChats
+          ? state.chats.filter(chat => chat.folder_id !== folderId)
+          : state.chats.map(chat =>
+              chat.folder_id === folderId
+                ? { ...chat, folder_id: null }
+                : chat
+            ),
+      }));
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -812,9 +1020,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       // Call the database function to handle deletion
       const { error } = await supabase
-        .rpc('delete_folder', { 
-          folder_uuid: folderId, 
-          delete_chats: deleteChats 
+        .rpc('delete_folder', {
+          folder_uuid: folderId,
+          delete_chats: deleteChats
         });
 
       if (error) throw error;
@@ -822,11 +1030,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       set((state) => ({
         folders: state.folders.filter(folder => folder.id !== folderId),
         // If we deleted chats too, remove them from state
-        chats: deleteChats 
+        chats: deleteChats
           ? state.chats.filter(chat => chat.folder_id !== folderId)
-          : state.chats.map(chat => 
-              chat.folder_id === folderId 
-                ? { ...chat, folder_id: null } 
+          : state.chats.map(chat =>
+              chat.folder_id === folderId
+                ? { ...chat, folder_id: null }
                 : chat
             ),
       }));
@@ -839,13 +1047,30 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   togglePinFolder: async (folderId: string) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - toggling folder pin in local state only');
+      const { folders } = get();
+      const folder = folders.find(f => f.id === folderId);
+      if (!folder) return;
+
+      const updatedPinned = !folder.pinned;
+      set({
+        folders: folders.map(f =>
+          f.id === folderId
+            ? { ...f, pinned: updatedPinned }
+            : f
+        )
+      });
+      return;
+    }
+
     const { folders } = get();
     const folder = folders.find(f => f.id === folderId);
     if (!folder) return;
 
     try {
       const updatedPinned = !folder.pinned;
-      
+
       const { error } = await supabase
         .from('folders')
         .update({ pinned: updatedPinned })
@@ -854,9 +1079,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       if (error) throw error;
 
       set({
-        folders: folders.map(f => 
-          f.id === folderId 
-            ? { ...f, pinned: updatedPinned } 
+        folders: folders.map(f =>
+          f.id === folderId
+            ? { ...f, pinned: updatedPinned }
             : f
         )
       });
@@ -867,6 +1092,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   moveChatToFolder: async (chatId: string, folderId: string | null) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - moving chat to folder in local state only');
+      set((state) => ({
+        chats: state.chats.map(chat =>
+          chat.id === chatId ? { ...chat, folder_id: folderId } : chat
+        ),
+      }));
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -874,7 +1109,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       const { error } = await supabase
         .from('chats')
-        .update({ 
+        .update({
           folder_id: folderId,
           updated_at: new Date().toISOString()
         })
@@ -897,6 +1132,16 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   moveChatsToFolder: async (chatIds: string[], folderId: string | null) => {
+    if (await isDemoMode()) {
+      console.log('[ChatStore] Auth disabled - moving chats to folder in local state only');
+      set((state) => ({
+        chats: state.chats.map(chat =>
+          chatIds.includes(chat.id) ? { ...chat, folder_id: folderId } : chat
+        ),
+      }));
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -904,9 +1149,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       // Use the database function for batch operations
       const { data, error } = await supabase
-        .rpc('move_chats_to_folder', { 
-          chat_ids: chatIds, 
-          target_folder_id: folderId 
+        .rpc('move_chats_to_folder', {
+          chat_ids: chatIds,
+          target_folder_id: folderId
         });
 
       if (error) throw error;
