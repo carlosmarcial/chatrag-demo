@@ -7,12 +7,14 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { ProcessedDocument } from './permanent-doc-upload-button';
 import { useTheme } from '@/components/theme-provider';
 import { useLanguage } from '@/components/providers/language-provider';
 
 export interface UnifiedUploadButtonProps {
   disabled?: boolean;
+  demoMode?: boolean;
   onTempDocUpload?: (doc: ProcessedDocument) => void;
   onProcessingStateChange?: (state: { isProcessing: boolean, name?: string, error?: string }) => void;
 }
@@ -21,12 +23,13 @@ const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/g
 const SUPPORTED_DOC_TYPES = ['.pdf', '.doc', '.docx', '.txt'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export function UnifiedUploadButton({ disabled, onTempDocUpload, onProcessingStateChange }: UnifiedUploadButtonProps) {
+export function UnifiedUploadButton({ disabled, demoMode = false, onTempDocUpload, onProcessingStateChange }: UnifiedUploadButtonProps) {
   const { setFile } = useFileUploadStore();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
   const { theme, resolvedTheme } = useTheme();
   const isDarkMode = theme === 'dark' || resolvedTheme === 'dark';
   const { t } = useLanguage();
@@ -160,7 +163,14 @@ export function UnifiedUploadButton({ disabled, onTempDocUpload, onProcessingSta
             backgroundColor: dropdownBgColor
           }}>
             <div
-              onClick={() => imageInputRef.current?.click()}
+              onClick={() => {
+                if (demoMode) {
+                  setIsOpen(false);
+                  setShowDemoModal(true);
+                } else {
+                  imageInputRef.current?.click();
+                }
+              }}
               onMouseEnter={() => setHoveredItem('image')}
               onMouseLeave={() => setHoveredItem(null)}
               className="flex items-center gap-2 cursor-pointer text-sm w-full"
@@ -177,7 +187,14 @@ export function UnifiedUploadButton({ disabled, onTempDocUpload, onProcessingSta
             </div>
             
             <div
-              onClick={() => docInputRef.current?.click()}
+              onClick={() => {
+                if (demoMode) {
+                  setIsOpen(false);
+                  setShowDemoModal(true);
+                } else {
+                  docInputRef.current?.click();
+                }
+              }}
               onMouseEnter={() => setHoveredItem('document')}
               onMouseLeave={() => setHoveredItem(null)}
               className="flex items-center gap-2 cursor-pointer text-sm w-full"
@@ -195,6 +212,23 @@ export function UnifiedUploadButton({ disabled, onTempDocUpload, onProcessingSta
           </div>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Demo restriction modal */}
+      <Dialog open={showDemoModal} onOpenChange={setShowDemoModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Document Upload Restricted</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3">
+              <div>This feature is only available in the full version of ChatRAG.</div>
+              <div className="text-sm text-muted-foreground">
+                Upload and chat with any document using advanced RAG technology. Process PDFs, Word docs, images, and more. Extract insights, get answers, and interact with your documents like never before with the full version of ChatRAG.
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogContent>
+      </Dialog>
     </>
   );
-} 
+}
