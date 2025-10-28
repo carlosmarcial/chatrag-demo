@@ -44,6 +44,7 @@ import { MobileToolsModal } from './mobile-tools-modal';
 import { MobileToolConfigModal } from './mobile-tool-config-modal';
 import { MobileActiveToolIndicator } from './mobile-active-tool-indicator';
 import { MobileMCPToolsModal } from './mobile-mcp-tools-modal';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 // Suggestion buttons are now handled in the main page component
 
 // Add environment variable check
@@ -566,9 +567,19 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
   const [hasNegativePrompt, setHasNegativePrompt] = useState(false);
   const [showSuggestion, setShowSuggestion] = useState(false);
   const [suggestionText, setSuggestionText] = useState('');
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   // Add state for 3D generation
   const [threeDGenSettings, setThreeDGenSettings] = useState<ThreeDGenerationSettings | null>(null);
   const [isGenerating3D, setIsGenerating3D] = useState(false);
+
+  // Demo modal handlers - wrap all button clicks to show modal
+  const showDemoModal = () => setIsDemoModalOpen(true);
+
+  const wrapHandler = (originalHandler: (...args: any[]) => any) => {
+    return (...args: any[]) => {
+      showDemoModal();
+    };
+  };
   const { currentChatId, chats } = useChatStore(
     useShallow((s) => ({ currentChatId: s.currentChatId, chats: s.chats }))
   );
@@ -2976,30 +2987,10 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
   // Update the button click handler
   const handleButtonClick = (e: React.MouseEvent) => {
     // Debug: Button click handler (removed verbose logging)
-    
-    if (parentIsLoading && handleStop) {
-      e.preventDefault();
-      e.stopPropagation();
-      // Debug: Executing stop action
-      
-      // Call handleStop synchronously to ensure immediate response
-      handleStop();
-      console.log('Stop action initiated');
-      
-      // Prevent any form submission
-      return false;
-    } else if (!parentIsLoading && input.trim()) {
-      // If sending a message, clear the input value proactively
-      console.log('Send button clicked, current input:', input);
-      
-      // Let the form submit normally, but we'll clear the input value immediately after
-      setTimeout(() => {
-        if (input) {
-          console.log('Clearing input after send button click');
-          setInput('');
-        }
-      }, 0);
-    }
+
+    // Show demo modal instead of normal functionality
+    showDemoModal();
+    return false;
   };
 
   const handleStartRecording = async () => {
@@ -4579,9 +4570,9 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
               <div className="absolute bottom-0 left-0 right-0 py-1 px-1 sm:px-1.5 rounded-b-3xl cursor-default">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
-                    <UnifiedUploadButton 
-                      disabled={parentIsLoading || isProcessingDoc || Boolean(file)}
-                      onTempDocUpload={handleTempDocUpload}
+                    <UnifiedUploadButton
+                    disabled={parentIsLoading || isProcessingDoc || Boolean(file)}
+                    onTempDocUpload={wrapHandler(handleTempDocUpload)}
                       onProcessingStateChange={(state) => {
                         if (state.isProcessing) {
                           setProcessingDoc({ 
@@ -4625,21 +4616,21 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                       <>
                         {isWebSearchAvailable && (
                           <WebSearchButton
-                            onWebSearchToggle={handleWebSearchToggle}
+                            onWebSearchToggle={wrapHandler(handleWebSearchToggle)}
                             isActive={isWebSearchEnabled}
                             disabled={parentIsLoading || isProcessingDoc || Boolean(tempDoc)}
                           />
                         )}
                         
                         <ReasoningButton
-                          onReasoningToggle={(config) => {
+                          onReasoningToggle={wrapHandler((config) => {
                             // Update global store
                             if (config) {
                               reasoningStore.setConfig(config);
                             } else {
                               reasoningStore.setEnabled(false);
                             }
-                          }}
+                          })}
                           isActive={reasoningStore.enabled}
                           currentModel={currentModel?.id}
                           disabled={parentIsLoading || isProcessingDoc || Boolean(tempDoc)}
@@ -4648,12 +4639,12 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                         {IMAGE_GENERATION_ENABLED && (
                           <ImageGenerationButton
                             disabled={parentIsLoading || isProcessingDoc}
-                            onImageGenerate={(config) => toggleImageGeneration(config)}
+                            onImageGenerate={wrapHandler((config) => toggleImageGeneration(config))}
                             hasText={Boolean(input.trim())}
                             hasDocumentContext={Boolean(tempDoc)}
                             isActive={Boolean(imageGenSettings)}
                             sourceImage={imageGenSettings?.sourceImages?.[0] || imageGenSettings?.sourceImage}
-                            onSourceImageSelect={(file) => {
+                            onSourceImageSelect={wrapHandler((file) => {
                               if (imageGenSettings) {
                                 // Update existing settings with the new file
                                 handleImageGenSettingsChange({
@@ -4661,7 +4652,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                                   sourceImages: file ? [file] : undefined
                                 });
                               }
-                            }}
+                            })}
                             onMenuOpenChange={setIsImageMenuOpen}
                           />
                         )}
@@ -4669,12 +4660,12 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                         {VIDEO_GENERATION_ENABLED && (
                           <VideoGenerationButton
                             disabled={parentIsLoading || isProcessingDoc}
-                            onVideoGenerate={handleVideoGenerate as any}
+                            onVideoGenerate={wrapHandler(handleVideoGenerate as any)}
                             hasText={Boolean(input.trim())}
                             hasDocumentContext={Boolean(tempDoc)}
                             isActive={Boolean(videoGenSettings)}
                             sourceImage={videoGenSettings?.sourceImage}
-                            onSourceImageSelect={(file) => {
+                            onSourceImageSelect={wrapHandler((file) => {
                               console.log('🔥 Video onSourceImageSelect called with:', file ? `${file.name} (${file.size} bytes)` : 'null');
                               if (file) {
                                 // Update existing settings with the new file or create new settings
@@ -4694,7 +4685,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                                   });
                                 }
                               }
-                            }}
+                            })}
                             onMenuOpenChange={setIsVideoMenuOpen}
                           />
                         )}
@@ -4703,7 +4694,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                           <ThreeDGenerationButton
                             disabled={parentIsLoading || isProcessingDoc}
                             hasDocumentContext={Boolean(tempDoc)}
-                            onThreeDGenerate={(textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
+                            onThreeDGenerate={wrapHandler((textureSize, meshSimplify, ssSamplingSteps, texturedMesh, useContext, imageFiles) => {
                               handleThreeDGenSettingsChange(
                                 textureSize,
                                 meshSimplify,
@@ -4712,7 +4703,7 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
                                 useContext,
                                 imageFiles
                               );
-                            }}
+                            })}
                             isActive={Boolean(threeDGenSettings)}
                           />
                         )}
@@ -4763,6 +4754,17 @@ export const ChatInput = forwardRef<ChatInputHandle, ChatInputProps>(function Ch
           onClose={() => setIsMCPModalOpen(false)}
         />
 
+        {/* Demo restriction modal */}
+        <Dialog open={isDemoModalOpen} onOpenChange={setIsDemoModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Feature Restricted</DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              This feature is only available in the full version of ChatRAG.
+            </DialogDescription>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </>
