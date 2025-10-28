@@ -1,0 +1,79 @@
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 155, 155, 0.8);
+}
+
+/* Make scrollbar always visible on hover in chat messages */
+.chat-messages:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.8);
+}
+
+/* Remove scrollbar from elements with artifact-sidebar-open class */
+body.artifact-sidebar-open .chat-container {
+  padding-right: 0 !important;
+}
+
+/* Ensure scrollbar is always present in chat container */
+.chat-container {
+  scrollbar-gutter: stable;
+  padding-right: 0 !important; /* Prevent shifting when scrollbar appears */
+}
+
+/* Add scrollbar hover effect to chat messages */
+.chat-messages {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+/* Fix for Firefox scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+*:hover {
+  scrollbar-color: rgba(155, 155, 155, 0.8) transparent;
+}
+
+/* Ensure scrollbar is visible in chat-message-container */
+.chat-message-container::-webkit-scrollbar {
+  width: 8px !important;
+  display: block !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+.chat-message-container:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.8);
+  visibility: visible !important;
+}
+
+/* Fix for artifact sidebar scrollbar gap */
+body.artifact-sidebar-open .chat-message-container {
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  right: 0 !important;
+}
+
+/* Ensure scrollbar gutter is stable */
+.chat-message-container {
+  scrollbar-gutter: stable;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
+} 

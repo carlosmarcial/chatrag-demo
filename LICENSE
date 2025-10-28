@@ -1,0 +1,86 @@
+ChatRAG Commercial License
+Version 1.0, January 2025
+
+Copyright (c) 2025 ChatRAG
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. DEFINITIONS
+
+"License" shall mean the terms and conditions for use, reproduction, and distribution as defined by this document.
+
+"Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
+
+"You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.
+
+"Source" form shall mean the preferred form for making modifications, including but not limited to software source code, documentation source, and configuration files.
+
+"Work" shall mean the ChatRAG software and associated documentation files covered by this License.
+
+"Derivative Work" shall mean any work that is based on or derived from the Work.
+
+"Commercial Use" shall mean use of the Work for commercial advantage or monetary compensation.
+
+"Boilerplate Product" shall mean any starter kit, template, boilerplate, scaffold, or similar product intended for use by developers as a foundation for building applications.
+
+2. GRANT OF RIGHTS
+
+Subject to the terms and conditions of this License, Licensor hereby grants You a worldwide, non-exclusive, non-transferable license to:
+
+a) Use the Work to build and deploy chatbot applications for yourself or your organization
+b) Use the Work to build and deploy chatbot applications for your clients
+c) Modify the Work for your own use or for your clients' use
+d) Use the Work for Commercial Use within deployed applications
+e) Create Derivative Works for internal use or client deployments
+
+3. RESTRICTIONS
+
+You may NOT:
+
+a) Sell, resell, license, sublicense, distribute, or otherwise transfer the Work or Derivative Works as a Boilerplate Product
+b) Use the Work to create competing boilerplate products, templates, or starter kits
+c) Redistribute the Work or Derivative Works in a manner that enables others to use it as a development foundation
+d) Remove or alter any proprietary notices or labels on the Work
+e) Use the Work to compete with ChatRAG by offering it as a service or product to other developers
+
+4. PERMITTED COMMERCIAL USE
+
+You MAY:
+
+a) Charge end-users for access to applications built with the Work
+b) Sell chatbot services built using the Work
+c) Offer consulting services for implementing the Work
+d) Deploy unlimited instances of the Work for commercial purposes
+e) White-label applications built with the Work for your clients
+
+5. ATTRIBUTION
+
+You must retain, in the Source form of any Derivative Works that You distribute, all copyright, patent, trademark, and attribution notices from the Source form of the Work, excluding those notices that do not pertain to any part of the Derivative Works.
+
+If the Work includes a "NOTICE" text file, any Derivative Works that You distribute must include a readable copy of the attribution notices contained within such NOTICE file.
+
+6. NO TRADEMARK LICENSE
+
+This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work.
+
+7. DISCLAIMER OF WARRANTY
+
+THE WORK IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE WORK OR THE USE OR OTHER DEALINGS IN THE WORK.
+
+8. LIMITATION OF LIABILITY
+
+IN NO EVENT AND UNDER NO LEGAL THEORY, WHETHER IN TORT (INCLUDING NEGLIGENCE), CONTRACT, OR OTHERWISE, SHALL THE LICENSOR BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING AS A RESULT OF THIS LICENSE OR OUT OF THE USE OR INABILITY TO USE THE WORK.
+
+9. TERMINATION
+
+This License and the rights granted hereunder will terminate automatically upon any breach by You of the terms of this License. Upon termination, You shall cease all use of the Work and destroy all copies.
+
+10. GENERAL
+
+If any provision of this License is invalid or unenforceable under applicable law, it shall not affect the validity or enforceability of the remainder of the terms of this License.
+
+This License constitutes the entire agreement between the parties with respect to the Work licensed here.
+
+---
+
+For inquiries about this license or commercial licensing options, please contact: hello@chatrag.ai

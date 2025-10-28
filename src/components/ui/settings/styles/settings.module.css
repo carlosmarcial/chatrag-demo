@@ -1,0 +1,82 @@
+/* Settings Modal Styles - Optimized CSS Module */
+
+/* Base dialog styles */
+.settingsDialog {
+  background-color: #FFF1E5 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: transform;
+}
+
+:global(.dark) .settingsDialog {
+  background-color: #212121 !important;
+}
+
+/* Close button with optimized positioning */
+.closeButton {
+  position: absolute !important;
+  right: 1rem !important;
+  top: 1rem !important;
+  z-index: 100 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  
+  /* Performance optimizations */
+  contain: layout style;
+  will-change: background-color, transform;
+}
+
+/* Tab navigation */
+.tabButton {
+  transition: background-color 0.15s ease;
+  will-change: background-color;
+}
+
+.tabButton:hover {
+  transform: translateZ(0); /* Force GPU acceleration */
+}
+
+/* Content area scrolling optimization */
+.contentArea {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  
+  /* Optimize scrolling performance */
+  will-change: scroll-position;
+}
+
+/* Tab content optimization */
+.tabContent {
+  contain: layout style paint;
+}
+
+/* Sidebar optimization */
+.sidebar {
+  contain: layout style;
+}
+
+/* GPU acceleration for transforms - removed transform to avoid conflicts with centering */
+.accelerated {
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+/* Animation performance */
+@media (prefers-reduced-motion: reduce) {
+  .settingsDialog :global(*) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High performance mode for low-end devices */
+@media (max-width: 768px) {
+  .settingsDialog {
+    /* Reduce shadows on mobile */
+    box-shadow: none !important;
+  }
+}
