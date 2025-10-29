@@ -78,16 +78,18 @@ export async function GET(request: NextRequest) {
       .replaceAll("'",'&#39;');
   }
   function linkify(s){
-    const parts = s.split(/(\s+)/); // keep spaces
+    // No regex usage to avoid any parser issues; simple space-based tokenization
+    const parts = s.split(' ');
     for (let i=0;i<parts.length;i++){
       const p = parts[i];
       if (p.startsWith('http://') || p.startsWith('https://')){
         parts[i] = '<a href="'+p+'" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">'+p+'<\/a>';
       }
     }
-    return parts.join('');
+    return parts.join(' ');
   }
   function renderText(t){
+    // Avoid regex; replace newline chars manually
     return linkify(escapeHtml(t)).split('\n').join('<br>');
   }
   
