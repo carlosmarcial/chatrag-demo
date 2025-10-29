@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
   }
   function renderText(t){
     // Split on actual newline characters and join with <br> tags
-    return linkify(escapeHtml(t)).split('\n').join('<br>');
+    return linkify(escapeHtml(t)).split('\\n').join('<br>');
   }
   
   // Configuration
@@ -642,7 +642,7 @@ export async function GET(request: NextRequest) {
         console.log('Received chunk:', chunk);
         
         // Split by lines and process each line
-        const lines = chunk.split(/\r?\n/);
+        const lines = chunk.split(/\\r?\\n/);
         console.log('Split into lines:', lines);
         
         for (let rawLine of lines) {
@@ -687,26 +687,32 @@ export async function GET(request: NextRequest) {
               
               try {
                 const parsed = JSON.parse(data);
-                console.log('Parsed SSE data:', parsed);
-                console.log('Type check:', parsed?.type, '=== "text-delta"?', parsed?.type === 'text-delta');
-                console.log('Delta check:', typeof parsed?.delta);
+                console.log('📦 SSE data:', JSON.stringify(parsed));
+                console.log('🔍 Keys:', Object.keys(parsed || {}));
+                console.log('🔍 Type:', parsed?.type, typeof parsed?.type);
+                console.log('🔍 Delta:', parsed?.delta, typeof parsed?.delta);
                 
-                // Handle Vercel AI SDK event stream
-                if (parsed && parsed.type === 'text-delta' && typeof parsed.delta === 'string') {
-                  const content = parsed.delta;
-                  assistantMessage += content;
-                  bubble.innerHTML = renderText(assistantMessage);
-                  scrollToBottom();
-                  console.log('✓ Added AI SDK text-delta:', content);
-                // Fallback to OpenAI Chat Completions delta shape
-                } else if (parsed && parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
-                  const content = parsed.choices[0].delta.content;
-                  assistantMessage += content;
-                  bubble.innerHTML = renderText(assistantMessage);
-                  scrollToBottom();
-                  console.log('✓ Added OpenAI delta:', content);
+                // Handle Vercel AI SDK event stream - more explicit
+                if (parsed && typeof parsed === 'object') {
+                  const eventType = parsed.type;
+                  const deltaContent = parsed.delta;
+                  
+                  if (eventType === 'text-delta' && typeof deltaContent === 'string') {
+                    assistantMessage += deltaContent;
+                    bubble.innerHTML = renderText(assistantMessage);
+                    scrollToBottom();
+                    console.log('✅ AI SDK delta:', deltaContent);
+                  } else if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+                    const content = parsed.choices[0].delta.content;
+                    assistantMessage += content;
+                    bubble.innerHTML = renderText(assistantMessage);
+                    scrollToBottom();
+                    console.log('✅ OpenAI delta:', content);
+                  } else {
+                    console.log('⚠️ No match. Keys:', Object.keys(parsed));
+                  }
                 } else {
-                  console.log('⚠ Parsed object did not match expected format');
+                  console.log('⚠️ Not an object:', typeof parsed);
                 }
               } catch (e) {
                 console.debug('Could not parse SSE data:', data);
@@ -723,7 +729,7 @@ export async function GET(request: NextRequest) {
                         let out = '';
                         while (j < data.length) {
                           const ch = data[j];
-                          if (ch === '"' && data[j-1] !== '\\') break;
+                          if (ch === '"' && data[j-1] !== '\\\\') break;
                           out += ch;
                           j++;
                         }
@@ -802,7 +808,7 @@ export async function GET(request: NextRequest) {
         errorMessage = 'Failed to connect to the server. Please try again.';
         debugInfo = 'Fetch Error';
       } else {
-        debugInfo = \`Unknown Error: \${error.message}\`;
+        debugInfo = 'Unknown Error: ' + error.message;
       }
       
       console.log('=== ERROR SUMMARY ===');

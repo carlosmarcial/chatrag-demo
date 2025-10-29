@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatRAG Widget Test</title>
+</head>
+<body>
+    <h1>ChatRAG Widget Test Page</h1>
+    <p>The widget should load from localhost:3000</p>
+    
+    <!-- Load the widget -->
+    <script 
+        src="http://localhost:3000/embed/chat.js"
+        data-primary-color="#FF6417"
+        data-title="Test Assistant"
+        data-auto-open="false"
+    ></script>
+    
+    <script>
+        // Log widget status
+        setTimeout(() => {
+            if (window.ChatRAGWidget) {
+                console.log('✅ Widget loaded successfully:', window.ChatRAGWidget.version);
+            } else {
+                console.error('❌ Widget failed to load');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
