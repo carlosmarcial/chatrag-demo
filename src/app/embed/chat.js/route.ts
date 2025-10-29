@@ -38,7 +38,14 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Embed functionality is disabled', { status: 403 });
   }
 
+  // Get the origin for API calls
+  // Always use this server's origin so API requests go to the ChatRAG demo domain
+  const origin = request.nextUrl.origin;
+
   // Get configuration from environment
+  const faviconPath = env.NEXT_PUBLIC_FAVICON_URL || '/favicon.svg';
+  const logoUrl = faviconPath.startsWith('http') ? faviconPath : `${origin}${faviconPath}`;
+
   const config = {
     title: env.NEXT_PUBLIC_EMBED_TITLE || 'ChatRAG Assistant',
     primaryColor: getEmbedColor(),
@@ -49,6 +56,7 @@ export async function GET(request: NextRequest) {
     requireAuth: env.EMBED_REQUIRE_AUTH === 'true',
     model: env.NEXT_PUBLIC_EMBED_MODEL || 'openai/gpt-4o-mini',
     suggestionsEnabled: env.NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED === 'true',
+    logoUrl: logoUrl,
     suggestions: (() => {
       try {
         const suggestionsStr = env.NEXT_PUBLIC_EMBED_SUGGESTIONS;
@@ -68,10 +76,6 @@ export async function GET(request: NextRequest) {
       }
     })()
   };
-
-  // Get the origin for API calls
-  // Always use this server's origin so API requests go to the ChatRAG demo domain
-  const origin = request.nextUrl.origin;
 
   // Domain validation
   if (config.allowedDomains !== '*') {
@@ -247,7 +251,10 @@ export async function GET(request: NextRequest) {
       align-items: center;
     \`;
     header.innerHTML = \`
-      <span>\${config.title}</span>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        \${config.logoUrl ? \`<img src="\${config.logoUrl}" alt="Logo" style="width: 24px; height: 24px; object-fit: contain;" onerror="this.style.display='none'" />\` : ''}
+        <span>\${config.title}</span>
+      </div>
       <button id="chatrag-close-btn" style="background: none; border: none; color: white; font-size: 20px; cursor: pointer; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button>
     \`;
     
@@ -391,6 +398,8 @@ export async function GET(request: NextRequest) {
       font-size: 14px;
       max-height: 100px;
       min-height: 40px;
+      background: white;
+      color: #333;
     \`;
     
     const sendButton = document.createElement('button');
