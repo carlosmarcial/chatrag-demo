@@ -704,6 +704,33 @@ export async function GET(request: NextRequest) {
                 }
               } catch (e) {
                 console.debug('Could not parse SSE data:', data);
+                // Fallback string extractor for AI SDK delta lines without valid JSON
+                try {
+                  if (data.indexOf('"delta"') !== -1) {
+                    let i = data.indexOf('"delta"');
+                    i = data.indexOf(':', i);
+                    if (i !== -1) {
+                      // Skip possible spaces and opening quote
+                      while (i + 1 < data.length && (data[i+1] === ' ')) i++;
+                      if (i + 2 < data.length && data[i+1] === '"') {
+                        let j = i + 2;
+                        let out = '';
+                        while (j < data.length) {
+                          const ch = data[j];
+                          if (ch === '"' && data[j-1] !== '\\') break;
+                          out += ch;
+                          j++;
+                        }
+                        if (out) {
+                          assistantMessage += out;
+                          bubble.innerHTML = renderText(assistantMessage);
+                          scrollToBottom();
+                          console.log('Added fallback delta:', out);
+                        }
+                      }
+                    }
+                  }
+                } catch(_){}
               }
             } else {
               // Try other formats
@@ -801,7 +828,7 @@ export async function GET(request: NextRequest) {
     },
     toggle: toggleChat,
     isOpen: () => isOpen,
-    version: 'v2-fixed-parsing'
+    version: 'v2-ai-sdk-delta'
   };
   
   // Log version for debugging
