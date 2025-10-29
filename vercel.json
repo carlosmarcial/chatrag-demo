@@ -11,6 +11,13 @@
   "ignoreCommand": "exit 1",
   "headers": [
     {
+      "source": "/embed/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors *" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
