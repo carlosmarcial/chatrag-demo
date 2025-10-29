@@ -685,13 +685,21 @@ export async function GET(request: NextRequest) {
               }
               
               try {
-              const parsed = JSON.parse(data);
-              if (parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
+                const parsed = JSON.parse(data);
+                // Handle Vercel AI SDK event stream
+                if (parsed && parsed.type === 'text-delta' && typeof parsed.delta === 'string') {
+                  const content = parsed.delta;
+                  assistantMessage += content;
+                  bubble.innerHTML = renderText(assistantMessage);
+                  scrollToBottom();
+                  console.log('Added AI SDK text-delta:', content);
+                // Fallback to OpenAI Chat Completions delta shape
+                } else if (parsed && parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
                   const content = parsed.choices[0].delta.content;
                   assistantMessage += content;
-                bubble.innerHTML = renderText(assistantMessage);
-                scrollToBottom();
-                  console.log('Added streaming content:', content);
+                  bubble.innerHTML = renderText(assistantMessage);
+                  scrollToBottom();
+                  console.log('Added OpenAI delta:', content);
                 }
               } catch (e) {
                 console.debug('Could not parse SSE data:', data);
