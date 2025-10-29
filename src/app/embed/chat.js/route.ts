@@ -1,5 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
+import fs from 'fs';
+import path from 'path';
+
+// Force dynamic rendering - don't cache this route
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+// Read embed color with fallback for dev and production
+function getEmbedColor(): string {
+  // Production: check process.env first (Vercel sets this)
+  if (process.env.NEXT_PUBLIC_EMBED_PRIMARY_COLOR) {
+    return process.env.NEXT_PUBLIC_EMBED_PRIMARY_COLOR;
+  }
+  
+  // Development: read from .env.local file (workaround for Next.js Turbopack caching)
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      const match = envContent.match(/NEXT_PUBLIC_EMBED_PRIMARY_COLOR=(.+)/);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+  } catch (e) {
+    // Ignore file read errors
+  }
+  
+  // Final fallback: check env singleton or use default
+  return env.NEXT_PUBLIC_EMBED_PRIMARY_COLOR || '#FF6417';
+}
 
 export async function GET(request: NextRequest) {
   // Check if embed is enabled
@@ -10,7 +41,7 @@ export async function GET(request: NextRequest) {
   // Get configuration from environment
   const config = {
     title: env.NEXT_PUBLIC_EMBED_TITLE || 'ChatRAG Assistant',
-    primaryColor: env.NEXT_PUBLIC_EMBED_PRIMARY_COLOR || '#FF6417',
+    primaryColor: getEmbedColor(),
     position: env.NEXT_PUBLIC_EMBED_POSITION || 'bottom-right',
     autoOpen: env.NEXT_PUBLIC_EMBED_AUTO_OPEN === 'true',
     greeting: env.NEXT_PUBLIC_EMBED_GREETING || 'Hello! How can I help you today?',
