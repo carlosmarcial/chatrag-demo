@@ -642,11 +642,12 @@ export async function GET(request: NextRequest) {
         console.log('Received chunk:', chunk);
         
         // Split by lines and process each line
-        const lines = chunk.split('\\n');
+        const lines = chunk.split(/\r?\n/);
         console.log('Split into lines:', lines);
         
-        for (const line of lines) {
-          if (line.trim() === '') continue;
+        for (let rawLine of lines) {
+          const line = rawLine.trim();
+          if (!line) continue;
           
           console.log('Processing line:', line);
           
@@ -676,9 +677,9 @@ export async function GET(request: NextRequest) {
               } catch (e) {
                 console.error('Could not parse error:', e);
               }
-            } else if (line.startsWith('data: ')) {
+            } else if (line.startsWith('data:')) {
               // Server-sent events format
-              const data = line.slice(6);
+              const data = line.slice(5).trimStart();
               if (data === '[DONE]') {
                 console.log('Stream completed with [DONE]');
                 break;
