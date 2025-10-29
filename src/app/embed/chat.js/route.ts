@@ -89,8 +89,8 @@ export async function GET(request: NextRequest) {
     return parts.join(' ');
   }
   function renderText(t){
-    // Avoid regex; replace newline chars manually; MUST double-escape backslash inside template literal
-    return linkify(escapeHtml(t)).split('\\n').join('<br>');
+    // Split on actual newline characters and join with <br> tags
+    return linkify(escapeHtml(t)).split('\n').join('<br>');
   }
   
   // Configuration
