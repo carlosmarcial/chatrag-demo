@@ -4261,7 +4261,10 @@
                                                     justify-content: space-between;
                                                     font-weight: 600;
                                                 ">
-                                                    <span id="chatTitle">ChatRAG</span>
+                                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                                        <img id="chatLogo" src="/favicon.svg" alt="Logo" style="width: 24px; height: 24px; object-fit: contain; display: none;" onerror="this.style.display='none'" />
+                                                        <span id="chatTitle">ChatRAG</span>
+                                                    </div>
                                                     <button onclick="toggleInlineChat()" style="
                                                         background: none;
                                                         border: none;
@@ -4357,6 +4360,8 @@
                                                                 max-height: 100px;
                                                                 min-height: 40px;
                                                                 outline: none;
+                                                                background: white;
+                                                                color: #333;
                                                             "
                                                             rows="1"
                                                             onkeydown="if(event.key==='Enter' && !event.shiftKey) { event.preventDefault(); sendPreviewMessage(); }"
@@ -9090,6 +9095,7 @@
                 const embedButton = document.getElementById('embedPreviewButton');
                 const chatHeader = document.getElementById('chatHeader');
                 const chatTitle = document.getElementById('chatTitle');
+                const chatLogo = document.getElementById('chatLogo');
                 const welcomeMessage = document.getElementById('welcomeMessage');
                 const sendButton = document.querySelector('#inlineChatWidget button[onclick="sendPreviewMessage()"]');
                 const inlineChatWidget = document.getElementById('inlineChatWidget');
@@ -9099,11 +9105,18 @@
                 const greeting = document.getElementById('NEXT_PUBLIC_EMBED_GREETING')?.value || 'Hello! Development help you today?';
                 const primaryColor = document.getElementById('NEXT_PUBLIC_EMBED_PRIMARY_COLOR')?.value || '#FF6417';
                 const position = document.getElementById('NEXT_PUBLIC_EMBED_POSITION')?.value || 'bottom-right';
+                const faviconUrl = document.getElementById('NEXT_PUBLIC_FAVICON_URL')?.value || '/favicon.svg';
                 
                 // Update colors - using configured primary color
                 if (embedButton) embedButton.style.background = primaryColor;
                 if (chatHeader) chatHeader.style.background = primaryColor;
                 if (sendButton) sendButton.style.background = primaryColor;
+                
+                // Update logo
+                if (chatLogo && faviconUrl) {
+                    chatLogo.src = faviconUrl;
+                    chatLogo.style.display = 'block';
+                }
                 
                 // Update text content
                 if (chatTitle) chatTitle.textContent = title;
