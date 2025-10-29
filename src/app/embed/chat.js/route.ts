@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
   };
 
   // Get the origin for API calls
-  const origin = request.headers.get('origin') || request.nextUrl.origin;
+  // Always use this server's origin so API requests go to the ChatRAG demo domain
+  const origin = request.nextUrl.origin;
 
   // Domain validation
   if (config.allowedDomains !== '*') {
@@ -69,7 +70,14 @@ export async function GET(request: NextRequest) {
   
   // Simple safe markdown/link renderer for chat bubbles
   function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');}
-  function linkify(s){return s.replace(/(https?:\/\/[^\s<>"']+[^\s<>"'.,!?;:])/gi,'<a href="$1" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">$1<\/a>');}
+  // Safer linkify that avoids complex regex escaping issues
+  function linkify(s){
+    try {
+      return s.replace(/https?:\/\/\S+/g, function(url){
+        return '<a href="'+url+'" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">'+url+'<\/a>';
+      });
+    } catch(_) { return s; }
+  }
   function markdownInline(s){
     // bold **text** and inline code \`code\`
     s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1<\/strong>');
@@ -291,49 +299,48 @@ export async function GET(request: NextRequest) {
     suggestionsRow.appendChild(suggestionsContainer);
 
     // Add suggestion pills
-      config.suggestions.forEach((suggestion) => {
-        const pill = document.createElement('button');
-        pill.className = 'chatrag-suggestion-pill';
-        pill.textContent = suggestion;
-        pill.style.cssText = \`
-          padding: 8px 14px;
-          border-radius: 20px;
-          border: 1px solid #ddd;
-          background: white;
-          color: #333;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-          white-space: nowrap;
-          font-family: inherit;
-        \`;
-        
-        // Hover effects
-        pill.addEventListener('mouseenter', () => {
-          pill.style.background = config.primaryColor;
-          pill.style.color = 'white';
-          pill.style.borderColor = config.primaryColor;
-        });
-        
-        pill.addEventListener('mouseleave', () => {
-          pill.style.background = 'white';
-          pill.style.color = '#333';
-          pill.style.borderColor = '#ddd';
-        });
-        
-        // Click handler - auto-fill and send (keep suggestions visible)
-        pill.addEventListener('click', () => {
-          const input = document.getElementById('chatrag-input');
-          if (input && !isLoading) {
-            input.value = suggestion;
-            // Auto-send the message
-            sendMessage();
-          }
-        });
-        
-        suggestionsContainer.appendChild(pill);
+    config.suggestions.forEach((suggestion) => {
+      const pill = document.createElement('button');
+      pill.className = 'chatrag-suggestion-pill';
+      pill.textContent = suggestion;
+      pill.style.cssText = \`
+        padding: 8px 14px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        background: white;
+        color: #333;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-family: inherit;
+      \`;
+      
+      // Hover effects
+      pill.addEventListener('mouseenter', () => {
+        pill.style.background = config.primaryColor;
+        pill.style.color = 'white';
+        pill.style.borderColor = config.primaryColor;
       });
-    }
+      
+      pill.addEventListener('mouseleave', () => {
+        pill.style.background = 'white';
+        pill.style.color = '#333';
+        pill.style.borderColor = '#ddd';
+      });
+      
+      // Click handler - auto-fill and send (keep suggestions visible)
+      pill.addEventListener('click', () => {
+        const input = document.getElementById('chatrag-input');
+        if (input && !isLoading) {
+          input.value = suggestion;
+          // Auto-send the message
+          sendMessage();
+        }
+      });
+      
+      suggestionsContainer.appendChild(pill);
+    });
     
     // Create input container
     const inputContainer = document.createElement('div');
