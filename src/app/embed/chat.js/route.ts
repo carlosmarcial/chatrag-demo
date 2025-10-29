@@ -68,39 +68,27 @@ export async function GET(request: NextRequest) {
 (function() {
   'use strict';
   
-  // Simple safe markdown/link renderer for chat bubbles
-  function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');}
-  // Safer linkify that avoids complex regex escaping issues
+  // Minimal-safe renderer (no regex to avoid parsing issues)
+  function escapeHtml(s){
+    return s
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+  }
   function linkify(s){
-    try {
-      return s.replace(/https?:\/\/\S+/g, function(url){
-        return '<a href="'+url+'" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">'+url+'<\/a>';
-      });
-    } catch(_) { return s; }
-  }
-  function markdownInline(s){
-    // bold **text** and inline code \`code\`
-    s = s.replace(/\*\*(.+?)\*\*/g,'<strong>$1<\/strong>');
-    s = s.replace(/\`([^\`]+)\`/g,'<code style="background:#f3f4f6;padding:2px 4px;border-radius:4px;">$1<\/code>');
-    return s;
-  }
-  function formatLists(text){
-    const lines = text.split(/\r?\n/);
-    let out = '';
-    let inOL = false; let olBuf = [];
-    const flushOL = ()=>{ if(inOL){ out += '<ol style="padding-left:1.25rem;margin:0 0 0.5rem 0;">'+olBuf.map(li=>'<li>'+li+'<\/li>').join('')+'<\/ol>'; inOL=false; olBuf=[]; } };
-    for(const raw of lines){
-      const m = raw.match(/^\s*(\d+)\.\s+(.*)$/);
-      if(m){ inOL = true; olBuf.push(markdownInline(linkify(escapeHtml(m[2])))); continue; }
-      flushOL();
-      if(raw.trim().length){ out += '<div>'+markdownInline(linkify(escapeHtml(raw)))+'<\/div>'; }
+    const parts = s.split(/(\s+)/); // keep spaces
+    for (let i=0;i<parts.length;i++){
+      const p = parts[i];
+      if (p.startsWith('http://') || p.startsWith('https://')){
+        parts[i] = '<a href="'+p+'" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">'+p+'<\/a>';
+      }
     }
-    flushOL();
-    return out || '';
+    return parts.join('');
   }
   function renderText(t){
-    const html = formatLists(t);
-    return html || markdownInline(linkify(escapeHtml(t))).replace(/\n/g,'<br>');
+    return linkify(escapeHtml(t)).split('\n').join('<br>');
   }
   
   // Configuration
