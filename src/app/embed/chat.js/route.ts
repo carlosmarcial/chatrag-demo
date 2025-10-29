@@ -687,20 +687,26 @@ export async function GET(request: NextRequest) {
               
               try {
                 const parsed = JSON.parse(data);
+                console.log('Parsed SSE data:', parsed);
+                console.log('Type check:', parsed?.type, '=== "text-delta"?', parsed?.type === 'text-delta');
+                console.log('Delta check:', typeof parsed?.delta);
+                
                 // Handle Vercel AI SDK event stream
                 if (parsed && parsed.type === 'text-delta' && typeof parsed.delta === 'string') {
                   const content = parsed.delta;
                   assistantMessage += content;
                   bubble.innerHTML = renderText(assistantMessage);
                   scrollToBottom();
-                  console.log('Added AI SDK text-delta:', content);
+                  console.log('✓ Added AI SDK text-delta:', content);
                 // Fallback to OpenAI Chat Completions delta shape
                 } else if (parsed && parsed.choices && parsed.choices[0] && parsed.choices[0].delta && parsed.choices[0].delta.content) {
                   const content = parsed.choices[0].delta.content;
                   assistantMessage += content;
                   bubble.innerHTML = renderText(assistantMessage);
                   scrollToBottom();
-                  console.log('Added OpenAI delta:', content);
+                  console.log('✓ Added OpenAI delta:', content);
+                } else {
+                  console.log('⚠ Parsed object did not match expected format');
                 }
               } catch (e) {
                 console.debug('Could not parse SSE data:', data);
@@ -828,7 +834,7 @@ export async function GET(request: NextRequest) {
     },
     toggle: toggleChat,
     isOpen: () => isOpen,
-    version: 'v2-ai-sdk-delta'
+    version: 'v2-debug-delta'
   };
   
   // Log version for debugging
