@@ -9,12 +9,14 @@ import { env, getAppName } from '@/lib/env';
 import { comprehensiveRetrieval, aggregateChunks, requiresComprehensiveRetrieval } from '@/lib/retrieval-strategies';
 import { optimizedSearch } from '@/lib/optimized-search';
 // Remove direct OpenRouter client import if using AI SDK provider
-// import { getOpenRouterClient } from '@/lib/openrouter'; 
+// import { getOpenRouterClient } from '@/lib/openrouter';
 import { ContentPart, APIMessage, ExtendedMessage, fromAPIMessages, toMessage } from '@/types/chat';
 import { ReasoningConfig, REASONING_MODELS } from '@/lib/types';
 // Import enhanced RAG functionality
 import { enhanceQueryWithReasoning, intelligentSearch, createEnhancedRAGPrompt } from '@/lib/thinking-rag-enhancer';
 import { enhancedRetrieveChunks } from '@/lib/enhanced-rag-retrieval';
+// Import URL extraction utilities
+import { formatURLsForContext, type ExtractedURL } from '@/lib/url-extractor';
 // Keep custom tool definitions if needed
 
 import { ReadableStream } from 'stream/web';
@@ -2137,13 +2139,16 @@ IMPORTANT:
         if (relevantChunks.length > 0) {
           // Group chunks by document for better organization
           const chunksByDocument = new Map<string, Array<{content: string, similarity: number, chunkNum?: number}>>();
-          
+
+          // Collect URLs from chunk metadata
+          const collectedURLs: ExtractedURL[] = [];
+
           for (const chunk of relevantChunks) {
             // Extract document name and chunk number from content
             const match = chunk.content.match(/^Document: ([^.]+\.[^.]+)\. Chunk (\d+) of \d+\. Content: /);
             const docName = match ? match[1] : 'Unknown Document';
             const chunkNum = match ? parseInt(match[2]) : undefined;
-            
+
             if (!chunksByDocument.has(docName)) {
               chunksByDocument.set(docName, []);
             }
@@ -2152,6 +2157,18 @@ IMPORTANT:
               similarity: chunk.similarity,
               chunkNum
             });
+
+            // Extract URLs from chunk metadata if available
+            // First try to get the full chunk with metadata from the database
+            const { data: chunkData } = await supabase
+              .from('document_chunks')
+              .select('metadata')
+              .eq('id', chunk.chunk_id)
+              .single();
+
+            if (chunkData?.metadata?.urls && Array.isArray(chunkData.metadata.urls)) {
+              collectedURLs.push(...chunkData.metadata.urls);
+            }
           }
           
           // Build organized context with document grouping
@@ -2183,7 +2200,21 @@ IMPORTANT:
             contextParts.push(...formattedChunks);
           }
           contextParts.push("=== END OF RELEVANT INFORMATION ===\n");
-          
+
+          // Add collected URLs to context if any were found
+          if (collectedURLs.length > 0) {
+            // Remove duplicates based on URL
+            const uniqueURLs = Array.from(
+              new Map(collectedURLs.map(url => [url.url, url])).values()
+            );
+
+            const urlSection = formatURLsForContext(uniqueURLs);
+            if (urlSection) {
+              contextParts.push(urlSection);
+              console.log(`Added ${uniqueURLs.length} unique URLs from chunks to context`);
+            }
+          }
+
           context += contextParts.join('\n\n');
           console.log(`Added ${relevantChunks.length} organized chunks from ${chunksByDocument.size} documents in filtered semantic search`);
         }

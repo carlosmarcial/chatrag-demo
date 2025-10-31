@@ -6,6 +6,7 @@ import { generateTitle } from './title-generator';
 import { createClient as createBrowserClient } from '@/lib/supabase/client';
 import { logger } from './logger';
 import { extractEnhancedMetadata, type EnhancedMetadata } from './temporal-metadata-extractor';
+import { enrichChunkWithURLs, extractURLs } from './url-extractor';
 
 /**
  * Supabase Connection Manager
@@ -178,11 +179,14 @@ async function storeDocument(filename: string, content: string, chunks: ChunkWit
   const chunksToInsert = chunks.map((chunk, index) => {
     // Extract enhanced metadata for better retrieval
     const enhancedMetadata = extractEnhancedMetadata(chunk.content);
-    
+
+    // Extract URLs from chunk content
+    const urlMetadata = extractURLs(chunk.content);
+
     // Create optimized content format that preserves important data
     // Remove redundant document prefix that wastes tokens
     const optimizedContent = chunk.content.trim();
-    
+
     return {
       id: uuidv4(),
       document_id: documentId,
@@ -195,7 +199,7 @@ async function storeDocument(filename: string, content: string, chunks: ChunkWit
         chunk_index: index,
         chunk_position: index + 1,
         total_chunks: chunks.length,
-        
+
         // Enhanced metadata for better retrieval
         temporal_entities: enhancedMetadata.temporal_entities,
         financial_entities: enhancedMetadata.financial_entities,
@@ -204,12 +208,18 @@ async function storeDocument(filename: string, content: string, chunks: ChunkWit
         numerical_density: enhancedMetadata.numerical_density,
         temporal_density: enhancedMetadata.temporal_density,
         chunk_semantic_type: enhancedMetadata.chunk_semantic_type,
-        
+
         // Additional indexing for search optimization
         has_temporal_data: enhancedMetadata.temporal_entities.length > 0,
         has_financial_data: enhancedMetadata.financial_entities.length > 0,
-        is_high_value_chunk: enhancedMetadata.chunk_semantic_type === 'financial_data' || 
+        is_high_value_chunk: enhancedMetadata.chunk_semantic_type === 'financial_data' ||
                            enhancedMetadata.chunk_semantic_type === 'mixed',
+
+        // URL metadata for link inclusion in AI responses
+        urls: urlMetadata.urls,
+        has_urls: urlMetadata.hasLinks,
+        url_count: urlMetadata.linkCount,
+        url_categories: [...new Set(urlMetadata.urls.map(u => u.category))],
       },
     };
   });

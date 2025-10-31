@@ -124,6 +124,11 @@ Context:
 3. Always cite your sources when referencing specific documents
 4. Provide balanced, objective information rather than opinions
 5. For technical topics, include practical steps or examples when appropriate
+6. IMPORTANT - When relevant links are provided in the "RELEVANT LINKS" section:
+   - Include clickable links naturally in your response using markdown format: [text](URL)
+   - Only include links that directly relate to the user's question
+   - Integrate links seamlessly into your answer where they add value
+   - Example: "You can purchase ChatRAG Complete [here](URL)" or "Check out the [documentation](URL)"
 
 Context:
 {{context}}`;

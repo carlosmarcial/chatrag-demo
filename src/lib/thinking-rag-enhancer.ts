@@ -310,13 +310,21 @@ Use your thinking/reasoning abilities to:
 4. If the context doesn't contain the answer, clearly state this limitation
 5. Quote or reference specific parts of the context when possible
 
+IMPORTANT - Link Usage:
+When the context includes a "RELEVANT LINKS" section:
+- Include clickable links naturally in your response using markdown format: [descriptive text](URL)
+- Only include links that are directly relevant to answering the user's question
+- Integrate links seamlessly where they add value
+- Examples: "You can purchase ChatRAG Complete [here](URL)" or "Visit the [documentation](URL)"
+- DO NOT just list all links - use them contextually in your answer
+
 Context from knowledge base (THIS IS YOUR ONLY SOURCE OF INFORMATION):
 ${context}
 
 Instructions from base prompt:
 ${basePrompt.replace('{{context}}', '').replace(/Context:\s*$/i, '').trim()}
 
-REMEMBER: You must base your ENTIRE response on the Context from knowledge base above. Do not add any information not explicitly stated in that context. If asked about payment integrations, features, or any specific details - ONLY mention what is in the context above.`;
+REMEMBER: You must base your ENTIRE response on the Context from knowledge base above. Do not add any information not explicitly stated in that context. If asked about payment integrations, features, or any specific details - ONLY mention what is in the context above. Include relevant links from the RELEVANT LINKS section when they enhance your answer.`;
 
   return enhancedRAGPrompt;
 }
