@@ -787,8 +787,7 @@ export async function GET(request: NextRequest) {
     // Show loading state
     isLoading = true;
     sendButton.style.opacity = '0.5';
-    showTypingIndicator();
-    
+
     try {
       // Prepare messages for API
       const apiMessages = messages.map(msg => ({
@@ -815,9 +814,7 @@ export async function GET(request: NextRequest) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = '';
-      
-      hideTypingIndicator();
-      
+
       // Add assistant message bubble
       const messagesContainer = document.getElementById('chatrag-messages');
       const messageDiv = document.createElement('div');
@@ -1005,7 +1002,6 @@ export async function GET(request: NextRequest) {
       }
       
     } catch (error) {
-      hideTypingIndicator();
       console.error('=== CHAT ERROR DETAILS ===');
       console.error('Error object:', error);
       console.error('Error message:', error.message);
