@@ -807,7 +807,7 @@ NEXT_PUBLIC_EMBED_TITLE=ChatRAG Assistant
 NEXT_PUBLIC_EMBED_PRIMARY_COLOR=#FF6417
 NEXT_PUBLIC_EMBED_POSITION=bottom-right
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=true
-NEXT_PUBLIC_EMBED_SUGGESTIONS=["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What\'s included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]
+NEXT_PUBLIC_EMBED_SUGGESTIONS=["Who is the creator of ChatRAG?","How much does ChatRAG cost and is it a one-time payment?","Do I really own the chatbots I create or is there vendor lock-in?","Can I build unlimited chatbots for my clients without extra fees?","What vector database and AI models does ChatRAG use?","How does ChatRAG compare to Chatbase in pricing and features?"]
 
 # Audio/Voice Settings
 NEXT_PUBLIC_VOICE_PROVIDER=openai
@@ -940,7 +940,7 @@ NEXT_PUBLIC_EMBED_GREETING=${getEnvValue('NEXT_PUBLIC_EMBED_GREETING') || 'Hello
 NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS=${getEnvValue('NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS') || '*'}
 EMBED_REQUIRE_AUTH=${getEnvValue('EMBED_REQUIRE_AUTH') || 'false'}
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED') || 'true'}
-NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What\\'s included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]'}
+NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["Who is the creator of ChatRAG?","How much does ChatRAG cost and is it a one-time payment?","Do I really own the chatbots I create or is there vendor lock-in?","Can I build unlimited chatbots for my clients without extra fees?","What vector database and AI models does ChatRAG use?","How does ChatRAG compare to Chatbase in pricing and features?"]'}
 
 # -----------------------------
 # DOCUMENT PROCESSING
@@ -1223,7 +1223,7 @@ NEXT_PUBLIC_EMBED_MODEL=${getEnvValue('NEXT_PUBLIC_EMBED_MODEL') || ''}
 NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS=${getEnvValue('NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS') || '*'}
 EMBED_REQUIRE_AUTH=${getEnvValue('EMBED_REQUIRE_AUTH') || 'false'}
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED') || 'true'}
-NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What\\'s included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]'}
+NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["Who is the creator of ChatRAG?","How much does ChatRAG cost and is it a one-time payment?","Do I really own the chatbots I create or is there vendor lock-in?","Can I build unlimited chatbots for my clients without extra fees?","What vector database and AI models does ChatRAG use?","How does ChatRAG compare to Chatbase in pricing and features?"]'}
 
 # -----------------------------
 # WHATSAPP
