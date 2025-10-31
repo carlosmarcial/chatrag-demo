@@ -188,10 +188,9 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
 
   // Handle selecting a suggestion item
   const handleItemClick = (category: string, item: string) => {
-    // Combine category + item to form full suggestion sentence
-    const fullSuggestion = `${category} ${item}`;
-    onSuggestionClick(category, fullSuggestion);
-    
+    // Use the item text directly as it's now a complete question
+    onSuggestionClick(category, item);
+
     // Close dropdown after selection
     setActiveCategory("");
     setIsMobileDropdownActive(false);
@@ -290,7 +289,7 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
               
               {/* Desktop dropdown */}
               {!isMobile && activeCategory === group.label && (
-                <div 
+                <div
                   className="suggestion-dropdown-menu"
                   style={{
                     opacity: 1,
@@ -306,8 +305,7 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
                       className={`suggestion-dropdown-item ${index === 0 ? 'first-item' : ''}`}
                       onClick={() => handleItemClick(activeCategory, item.text)}
                     >
-                      <span className="suggestion-prefix">{group.label}</span>
-                      <span className="suggestion-suffix"> {item.text}</span>
+                      {item.text}
                     </button>
                   ))}
                 </div>
@@ -349,8 +347,7 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
                   }}
                 >
                   <span className="mobile-suggestion-text">
-                    <span className="mobile-suggestion-prefix">{activeGroup.label}</span>
-                    <span className="mobile-suggestion-suffix"> {item.text}</span>
+                    {item.text}
                   </span>
                 </button>
               ))}
@@ -379,7 +376,7 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
           justify-content: center;
           overflow-x: visible;
           padding: 0px 16px;
-          gap: 10px;
+          gap: 8px;
         }
         
 
@@ -742,9 +739,9 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
           color: #444444;
           border: 1px solid rgba(212, 192, 182, 0.3);
           height: 42px;
-          padding: 0 18px;
+          padding: 0 14px;
           border-radius: 8px;
-          font-size: 15px;
+          font-size: 14px;
           font-weight: 500;
           display: flex;
           align-items: center;
@@ -878,7 +875,7 @@ export function SuggestionButtonsClient({ suggestionGroups, onSuggestionClick }:
           margin-top: -1px;
           transform: translateX(-50%);
         }
-        
+
         /* Dark mode dropdown */
         html.dark .suggestion-dropdown-menu {
           background-color: transparent;

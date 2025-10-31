@@ -39,40 +39,40 @@ const defaultSuggestionGroups: SuggestionGroup[] = [
     label: "Pricing & Ownership",
     icon: "DollarSign",
     items: [
-      { text: "how much does ChatRAG cost and what's included in each plan?" },
-      { text: "is it really unlimited chatbots or are there hidden usage limits?" },
-      { text: "do I own the code forever or is this a subscription model?" },
-      { text: "can I use ChatRAG for client projects without extra licensing fees?" }
+      { text: "How much does ChatRAG cost?" },
+      { text: "How many chatbots can I create?" },
+      { text: "Do I own the code forever?" },
+      { text: "Can I use ChatRAG for client projects?" }
     ]
   },
   {
     label: "Technical Foundation",
     icon: "Database",
     items: [
-      { text: "what vector database does ChatRAG use and how fast is retrieval?" },
-      { text: "what does it use for document parsing and embedding generation?" },
-      { text: "which AI models are supported: GPT-4, Claude, Gemini, open-source?" },
-      { text: "does it use HNSW or IVFFLAT indexing for vector search?" }
+      { text: "What vector database does ChatRAG use?" },
+      { text: "How does ChatRAG parse documents?" },
+      { text: "What AI models does ChatRAG support?" },
+      { text: "How fast is the vector search?" }
     ]
   },
   {
     label: "ChatRAG vs Others",
     icon: "BarChart",
     items: [
-      { text: "how does ChatRAG compare to Chatbase on pricing and features?" },
-      { text: "why choose ChatRAG instead of building a RAG system from scratch?" },
-      { text: "who created ChatRAG and is it actively maintained with updates?" },
-      { text: "what does ChatRAG include that competitors like Chatbase don't offer?" }
+      { text: "How does ChatRAG compare to Chatbase?" },
+      { text: "Why choose ChatRAG over building from scratch?" },
+      { text: "Who created ChatRAG?" },
+      { text: "What features does ChatRAG have that competitors don't?" }
     ]
   },
   {
     label: "Key Features",
     icon: "Rocket",
     items: [
-      { text: "does ChatRAG support WhatsApp without requiring a business account?" },
-      { text: "can I monetize chatbots I build using Stripe or Polar payments?" },
-      { text: "does it include image generation, video creation, and 3D features?" },
-      { text: "how hard is the initial setup and do I need coding experience?" }
+      { text: "How can I install ChatRAG?" },
+      { text: "How can I deploy ChatRAG to Vercel?" },
+      { text: "Does ChatRAG support WhatsApp?" },
+      { text: "Can I monetize chatbots with Stripe?" }
     ]
   }
 ];
