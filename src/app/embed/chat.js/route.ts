@@ -61,17 +61,17 @@ export async function GET(request: NextRequest) {
       try {
         const suggestionsStr = env.NEXT_PUBLIC_EMBED_SUGGESTIONS;
         return suggestionsStr ? JSON.parse(suggestionsStr) : [
-          'What can you help me with?',
-          'How does this work?',
-          'Tell me about your features',
-          'Get started guide'
+          'What does ChatRAG include out of the box?',
+          'How do I set it up with Supabase and the config UI?',
+          'How does ChatRAG compare to Chatbase?',
+          'How do I connect WhatsApp via Baileys?'
         ];
       } catch (e) {
         return [
-          'What can you help me with?',
-          'How does this work?',
-          'Tell me about your features',
-          'Get started guide'
+          'What does ChatRAG include out of the box?',
+          'How do I set it up with Supabase and the config UI?',
+          'How does ChatRAG compare to Chatbase?',
+          'How do I connect WhatsApp via Baileys?'
         ];
       }
     })()

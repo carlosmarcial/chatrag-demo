@@ -32,43 +32,43 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 // Default suggestion groups as fallback
 const defaultSuggestionGroups: SuggestionGroup[] = [
   {
-    label: "Tell me about",
+    label: "ChatRAG Basics",
     icon: "FileText",
     items: [
-      { text: "the unified RAG pipeline and why it retrieves faster" },
-      { text: "the AI providers and reasoning models I can use" },
-      { text: "how Supabase handles auth, storage, and real-time data" },
-      { text: "what the admin dashboard lets me configure" }
+      { text: "what ChatRAG includes out of the box and who it's for" },
+      { text: "the pricing difference between Starter and Complete" },
+      { text: "how ChatRAG compares to Chatbase on cost and features" },
+      { text: "which GPT-4.1, Claude Sonnet 4.5, and other models are supported" }
     ]
   },
   {
-    label: "Help me deploy",
+    label: "Launch Checklist",
     icon: "ListTodo",
     items: [
-      { text: "ChatRAG to Vercel with the required setup steps" },
-      { text: "the Supabase configuration and environment variables I need" },
-      { text: "how to prepare production-ready Postgres and pgvector" },
-      { text: "how to onboard teammates and admin users" }
+      { text: "the quick start steps after cloning the repository" },
+      { text: "how to run Supabase complete_setup.sql and capture the keys" },
+      { text: "what to configure in the visual dashboard before launch" },
+      { text: "how to confirm RAG answers upload-based questions correctly" }
     ]
   },
   {
-    label: "Show me how to",
-    icon: "Paintbrush",
-    items: [
-      { text: "customize the chat UI branding and themes" },
-      { text: "tune the RAG system prompt and retrieval settings" },
-      { text: "add custom AI tools or MCP integrations" },
-      { text: "manage pricing with Stripe and Polar" }
-    ]
-  },
-  {
-    label: "Guide me through",
+    label: "Integrations",
     icon: "Globe",
     items: [
-      { text: "enabling WhatsApp messaging with the Baileys providers" },
-      { text: "uploading documents so RAG can answer questions" },
-      { text: "connecting additional AI models via OpenRouter" },
-      { text: "monitoring usage, subscriptions, and real-time analytics" }
+      { text: "connect WhatsApp via Baileys on Koyeb or Fly.io with webhooks" },
+      { text: "enable Exa web search for live answers in chat and WhatsApp" },
+      { text: "toggle image, video, and 3D generation providers in the dashboard" },
+      { text: "add Zapier MCP and custom tool servers for automation" }
+    ]
+  },
+  {
+    label: "Monetize & Scale",
+    icon: "Paintbrush",
+    items: [
+      { text: "set up Stripe and Polar so I can monetize chatbot access" },
+      { text: "best practices for system prompts and retrieval tuning" },
+      { text: "manage admin users, tenants, and saved chat titles" },
+      { text: "keep up with updates, support channels, and roadmap info" }
     ]
   }
 ];
