@@ -61,17 +61,21 @@ export async function GET(request: NextRequest) {
       try {
         const suggestionsStr = env.NEXT_PUBLIC_EMBED_SUGGESTIONS;
         return suggestionsStr ? JSON.parse(suggestionsStr) : [
-          'What does ChatRAG include out of the box?',
-          'How do I set it up with Supabase and the config UI?',
-          'How does ChatRAG compare to Chatbase?',
-          'How do I connect WhatsApp via Baileys?'
+          'Who created ChatRAG?',
+          'How many chatbots can I build with ChatRAG?',
+          'Do I own the chatbots I create?',
+          'Can I build a business on top of ChatRAG?',
+          "What's included in the Starter vs Complete plans?",
+          'How do I connect WhatsApp and other channels?'
         ];
       } catch (e) {
         return [
-          'What does ChatRAG include out of the box?',
-          'How do I set it up with Supabase and the config UI?',
-          'How does ChatRAG compare to Chatbase?',
-          'How do I connect WhatsApp via Baileys?'
+          'Who created ChatRAG?',
+          'How many chatbots can I build with ChatRAG?',
+          'Do I own the chatbots I create?',
+          'Can I build a business on top of ChatRAG?',
+          "What's included in the Starter vs Complete plans?",
+          'How do I connect WhatsApp and other channels?'
         ];
       }
     })()
