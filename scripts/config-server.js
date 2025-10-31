@@ -807,7 +807,7 @@ NEXT_PUBLIC_EMBED_TITLE=ChatRAG Assistant
 NEXT_PUBLIC_EMBED_PRIMARY_COLOR=#FF6417
 NEXT_PUBLIC_EMBED_POSITION=bottom-right
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=true
-NEXT_PUBLIC_EMBED_SUGGESTIONS=["What can you help me with?","How does this work?","Tell me about your features","Get started guide"]
+NEXT_PUBLIC_EMBED_SUGGESTIONS=["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What\'s included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]
 
 # Audio/Voice Settings
 NEXT_PUBLIC_VOICE_PROVIDER=openai
@@ -940,7 +940,7 @@ NEXT_PUBLIC_EMBED_GREETING=${getEnvValue('NEXT_PUBLIC_EMBED_GREETING') || 'Hello
 NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS=${getEnvValue('NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS') || '*'}
 EMBED_REQUIRE_AUTH=${getEnvValue('EMBED_REQUIRE_AUTH') || 'false'}
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED') || 'true'}
-NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["What can you help me with?","How does this work?","Tell me about your features","Get started guide"]'}
+NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What\\'s included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]'}
 
 # -----------------------------
 # DOCUMENT PROCESSING
@@ -1223,7 +1223,7 @@ NEXT_PUBLIC_EMBED_MODEL=${getEnvValue('NEXT_PUBLIC_EMBED_MODEL') || ''}
 NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS=${getEnvValue('NEXT_PUBLIC_EMBED_ALLOWED_DOMAINS') || '*'}
 EMBED_REQUIRE_AUTH=${getEnvValue('EMBED_REQUIRE_AUTH') || 'false'}
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED') || 'true'}
-NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["What can you help me with?","How does this work?","Tell me about your features","Get started guide"]'}
+NEXT_PUBLIC_EMBED_SUGGESTIONS=${getEnvValue('NEXT_PUBLIC_EMBED_SUGGESTIONS') || '["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What\\'s included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]'}
 
 # -----------------------------
 # WHATSAPP

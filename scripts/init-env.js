@@ -228,7 +228,7 @@ EMBED_REQUIRE_AUTH=false
 
 # Embed Widget Suggested Prompts
 NEXT_PUBLIC_EMBED_SUGGESTIONS_ENABLED=true
-NEXT_PUBLIC_EMBED_SUGGESTIONS=["What can you help me with?","How does this work?","Tell me about your features","Get started guide"]
+NEXT_PUBLIC_EMBED_SUGGESTIONS=["Who created ChatRAG?","How many chatbots can I build with ChatRAG?","Do I own the chatbots I create?","Can I build a business on top of ChatRAG?","What's included in the Starter vs Complete plans?","How do I connect WhatsApp and other channels?"]
 
 # -----------------------------
 # DOCUMENT PROCESSING
