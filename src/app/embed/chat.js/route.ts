@@ -346,7 +346,7 @@ export async function GET(request: NextRequest) {
         transition: all 0.2s;
         white-space: normal;
         word-break: break-word;
-        text-align: center;
+        text-align: right;
         line-height: 1.3;
         max-width: 280px;
         font-family: inherit;
