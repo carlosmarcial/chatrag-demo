@@ -1,4 +1,4 @@
-import { FileText, Globe, ListTodo, Paintbrush } from 'lucide-react';
+import { DollarSign, Database, BarChart, Rocket, FileText, Globe, ListTodo, Paintbrush } from 'lucide-react';
 import { SuggestionButtonsClient } from './suggestion-buttons-client';
 
 interface SuggestionItem {
@@ -19,6 +19,10 @@ interface SuggestionButtonsProps {
 
 // Icon mapping for dynamic icon loading
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  DollarSign,
+  Database,
+  BarChart,
+  Rocket,
   FileText,
   Globe,
   ListTodo,
@@ -32,43 +36,43 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 // Default suggestion groups as fallback
 const defaultSuggestionGroups: SuggestionGroup[] = [
   {
-    label: "ChatRAG Basics",
-    icon: "FileText",
+    label: "Pricing & Ownership",
+    icon: "DollarSign",
     items: [
-      { text: "what ChatRAG includes out of the box and who it's for" },
-      { text: "the pricing difference between Starter and Complete" },
-      { text: "how ChatRAG compares to Chatbase on cost and features" },
-      { text: "which GPT-4.1, Claude Sonnet 4.5, and other models are supported" }
+      { text: "how much does ChatRAG cost and what's included in each plan?" },
+      { text: "is it really unlimited chatbots or are there hidden usage limits?" },
+      { text: "do I own the code forever or is this a subscription model?" },
+      { text: "can I use ChatRAG for client projects without extra licensing fees?" }
     ]
   },
   {
-    label: "Launch Checklist",
-    icon: "ListTodo",
+    label: "Technical Foundation",
+    icon: "Database",
     items: [
-      { text: "the quick start steps after cloning the repository" },
-      { text: "how to run Supabase complete_setup.sql and capture the keys" },
-      { text: "what to configure in the visual dashboard before launch" },
-      { text: "how to confirm RAG answers upload-based questions correctly" }
+      { text: "what vector database does ChatRAG use and how fast is retrieval?" },
+      { text: "what does it use for document parsing and embedding generation?" },
+      { text: "which AI models are supported: GPT-4, Claude, Gemini, open-source?" },
+      { text: "does it use HNSW or IVFFLAT indexing for vector search?" }
     ]
   },
   {
-    label: "Integrations",
-    icon: "Globe",
+    label: "ChatRAG vs Others",
+    icon: "BarChart",
     items: [
-      { text: "connect WhatsApp via Baileys on Koyeb or Fly.io with webhooks" },
-      { text: "enable Exa web search for live answers in chat and WhatsApp" },
-      { text: "toggle image, video, and 3D generation providers in the dashboard" },
-      { text: "add Zapier MCP and custom tool servers for automation" }
+      { text: "how does ChatRAG compare to Chatbase on pricing and features?" },
+      { text: "why choose ChatRAG instead of building a RAG system from scratch?" },
+      { text: "who created ChatRAG and is it actively maintained with updates?" },
+      { text: "what does ChatRAG include that competitors like Chatbase don't offer?" }
     ]
   },
   {
-    label: "Monetize & Scale",
-    icon: "Paintbrush",
+    label: "Key Features",
+    icon: "Rocket",
     items: [
-      { text: "set up Stripe and Polar so I can monetize chatbot access" },
-      { text: "best practices for system prompts and retrieval tuning" },
-      { text: "manage admin users, tenants, and saved chat titles" },
-      { text: "keep up with updates, support channels, and roadmap info" }
+      { text: "does ChatRAG support WhatsApp without requiring a business account?" },
+      { text: "can I monetize chatbots I build using Stripe or Polar payments?" },
+      { text: "does it include image generation, video creation, and 3D features?" },
+      { text: "how hard is the initial setup and do I need coding experience?" }
     ]
   }
 ];
