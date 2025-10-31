@@ -5,6 +5,7 @@ import { streamText } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { z } from 'zod/v3';
 import { ExtendedMessage, toAPIMessage } from '@/types/chat';
+import { enhancedRetrieveChunks } from '@/lib/enhanced-rag-retrieval';
 
 // Use Node.js runtime instead of Edge
 export const runtime = 'nodejs';
@@ -109,6 +110,73 @@ export async function POST(request: NextRequest) {
     console.log('EMBED API: Request body:', { messagesCount: body.messages?.length, model: body.model });
     const { messages, model } = embedChatSchema.parse(body);
 
+    // --- RAG RETRIEVAL: Get relevant documents from knowledge base ---
+    console.log('[EMBED RAG] Starting document retrieval...');
+    let context = '';
+
+    // Get the last user message as the query
+    const userMessages = messages.filter(m => m.role === 'user');
+    const lastUserMessage = userMessages[userMessages.length - 1];
+    const queryText = lastUserMessage?.content || '';
+
+    if (queryText && queryText.trim().length > 0) {
+      try {
+        console.log('[EMBED RAG] Query:', queryText);
+
+        // Retrieve relevant chunks using enhanced RAG
+        const enhancedResult = await enhancedRetrieveChunks(queryText, {
+          maxResults: parseInt(env.RAG_FINAL_RESULT_COUNT || '25'),
+          enableTemporalBoost: true,
+          enableFinancialBoost: true,
+          requireTemporalMatch: false,
+          fallbackToLowerThreshold: true
+        });
+
+        console.log(`[EMBED RAG] Retrieved ${enhancedResult.chunks.length} chunks using ${enhancedResult.retrievalStrategy}`);
+
+        if (enhancedResult.chunks.length > 0) {
+          // Format chunks into context
+          const contextParts: string[] = ["\n\n=== RELEVANT INFORMATION FROM DOCUMENTS ==="];
+
+          // Group chunks by document
+          const chunksByDocument = new Map<string, Array<{content: string, similarity: number}>>();
+
+          for (const chunk of enhancedResult.chunks) {
+            // Extract document name from chunk content
+            const match = chunk.content.match(/^Document: ([^.]+\.[^.]+)\. Chunk (\d+) of \d+\. Content: /);
+            const docName = match ? match[1] : 'Unknown Document';
+
+            if (!chunksByDocument.has(docName)) {
+              chunksByDocument.set(docName, []);
+            }
+            chunksByDocument.get(docName)!.push({
+              content: chunk.content,
+              similarity: chunk.similarity
+            });
+          }
+
+          // Add organized chunks to context
+          for (const [docName, chunks] of chunksByDocument) {
+            contextParts.push(`\n--- Document: ${docName} (${chunks.length} relevant chunks) ---`);
+            const formattedChunks = chunks.map(c => c.content);
+            contextParts.push(...formattedChunks);
+          }
+          contextParts.push("=== END OF RELEVANT INFORMATION ===\n");
+
+          context = contextParts.join('\n\n');
+          console.log(`[EMBED RAG] Built context with ${context.length} characters from ${chunksByDocument.size} documents`);
+        } else {
+          console.log('[EMBED RAG] No relevant chunks found');
+          context = 'No relevant information found in the knowledge base for this query.';
+        }
+      } catch (error) {
+        console.error('[EMBED RAG] Error during retrieval:', error);
+        context = 'No relevant information found in the knowledge base for this query.';
+      }
+    } else {
+      console.log('[EMBED RAG] No query text provided, skipping retrieval');
+    }
+
     // Use the same system prompt format as the main chat API
     // Get the RAG system prompt from environment (same as main chat)
     let systemPrompt = 'You are a helpful AI assistant with access to a knowledge base. When answering questions:\n\n1. If the context contains relevant information, use it to provide accurate and specific answers\n2. If information is not available in the context, say so clearly and suggest alternative approaches\n3. Always cite your sources when referencing specific documents\n4. Provide balanced, objective information rather than opinions\n5. For technical topics, include practical steps or examples when appropriate\n\nContext:\n{{context}}';
@@ -121,7 +189,7 @@ export async function POST(request: NextRequest) {
         let previous = '';
         let iterations = 0;
         const maxIterations = 10; // Prevent infinite loops
-        
+
         // Recursively decode until no more encoding detected
         while (ragPrompt !== previous && ragPrompt.includes('%') && iterations < maxIterations) {
           previous = ragPrompt;
@@ -133,21 +201,30 @@ export async function POST(request: NextRequest) {
             break;
           }
         }
-        
+
         if (iterations > 0) {
           console.log(`[Embed API] Successfully decoded system prompt after ${iterations} iterations`);
         }
-        
+
         systemPrompt = ragPrompt;
       } catch (e) {
         console.log('EMBED API: Could not decode RAG_SYSTEM_PROMPT, using default');
       }
     }
 
+    // Replace {{context}} placeholder with actual retrieved context
+    console.log('[EMBED RAG] Injecting context into system prompt...');
+    console.log('[EMBED RAG] Context length:', context.length);
+    console.log('[EMBED RAG] System prompt contains {{context}}:', systemPrompt.includes('{{context}}'));
+
+    const finalSystemPrompt = systemPrompt.replace('{{context}}', context);
+
+    console.log('[EMBED RAG] Final system prompt preview (first 300 chars):', finalSystemPrompt.substring(0, 300));
+
     const systemMessage: ExtendedMessage = {
       id: 'embed-system-context',
       role: 'system',
-      content: systemPrompt
+      content: finalSystemPrompt
     };
 
     const userAndAssistantMessages: ExtendedMessage[] = messages.map((message, index) => ({
