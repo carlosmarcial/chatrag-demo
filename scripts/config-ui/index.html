@@ -4177,21 +4177,29 @@
                                 </div>
 
                                 <!-- Important Setup Instructions -->
-                                <div class="alert alert-warning shadow-lg mb-6">
+                                <div class="alert alert-info shadow-lg mb-6">
                                     <div>
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         <div>
-                                            <h3 class="font-bold">Before Using the Embed Code</h3>
+                                            <h3 class="font-bold">Setting Up Your Embed Widget</h3>
                                             <div class="text-sm">
-                                                <p class="mb-2">To generate the correct embed code, you need to set your Site URL first:</p>
+                                                <p class="mb-2">The embed code below will update automatically based on your Site URL:</p>
                                                 <ol class="list-decimal list-inside space-y-1 ml-2">
                                                     <li>Go to the <strong>Authentication</strong> tab in the left sidebar</li>
                                                     <li>Find the <strong>Site URL</strong> field at the top</li>
-                                                    <li>Enter your production domain (e.g., <code class="bg-base-300 px-1 py-0.5 rounded">https://chatrag-demo.vercel.app</code>)</li>
+                                                    <li>Enter your domain:
+                                                        <ul class="list-disc list-inside ml-4 mt-1">
+                                                            <li>For testing: <code class="bg-base-300 px-1 py-0.5 rounded">http://localhost:3000</code></li>
+                                                            <li>For production: <code class="bg-base-300 px-1 py-0.5 rounded">https://yourdomain.com</code></li>
+                                                        </ul>
+                                                    </li>
                                                     <li>Click <strong>Save All Settings</strong></li>
-                                                    <li>Return to this tab - the embed code will automatically update with your domain</li>
+                                                    <li>Return to this tab - the embed code will show your domain</li>
                                                 </ol>
-                                                <p class="mt-2 text-warning-content/80">⚠️ The embed code won't work correctly if you use <code class="bg-base-300 px-1 py-0.5 rounded">localhost</code> as your Site URL.</p>
+                                                <div class="mt-3 p-2 bg-base-300/50 rounded">
+                                                    <p class="font-semibold">💡 Pro Tip:</p>
+                                                    <p>You can test the widget locally with <code class="bg-base-100 px-1 py-0.5 rounded">localhost</code>, but remember to update to your production domain before deploying!</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -4217,6 +4225,23 @@
                                             <div class="text-sm text-base-content/70 mt-2">
                                                 Creates a floating chat button in the corner of your website. Clicking opens a chat popup.
                                                 <br>Works on any website including WordPress, Shopify, etc.
+                                            </div>
+                                        </div>
+
+                                        <!-- React/Next.js Integration -->
+                                        <div class="mb-6">
+                                            <label class="label">
+                                                <span class="label-text font-semibold">React/Next.js Component</span>
+                                            </label>
+                                            <div class="mockup-code">
+                                                <pre id="embedReactCode"><code>&lt;script dangerouslySetInnerHTML={{ __html: `...` }} /&gt;</code></pre>
+                                            </div>
+                                            <button id="copyReactBtn" class="btn btn-outline btn-sm mt-2">
+                                                📋 Copy React Code
+                                            </button>
+                                            <div class="text-sm text-base-content/70 mt-2">
+                                                For React and Next.js applications. Add this to your layout or component.
+                                                <br>Uses dangerouslySetInnerHTML to inject the widget script.
                                             </div>
                                         </div>
                                     </div>
@@ -7406,15 +7431,17 @@
                     var siteUrlInput = document.getElementById('NEXT_PUBLIC_SITE_URL');
                     if (siteUrlInput && siteUrlInput.value) {
                         siteUrl = siteUrlInput.value;
+                        // Remove trailing slash to prevent double slashes in URLs
+                        siteUrl = siteUrl.replace(/\/$/, '');
                     }
-                    
+
                     // Get current configuration values
                     var primaryColor = document.getElementById('NEXT_PUBLIC_EMBED_PRIMARY_COLOR')?.value || '#FF6417';
                     var title = document.getElementById('NEXT_PUBLIC_EMBED_TITLE')?.value || 'ChatRAG Assistant';
                     var position = document.getElementById('NEXT_PUBLIC_EMBED_POSITION')?.value || 'bottom-right';
                     var greeting = document.getElementById('NEXT_PUBLIC_EMBED_GREETING')?.value || 'Hello! Development help you today?';
                     var model = document.getElementById('NEXT_PUBLIC_EMBED_MODEL')?.value || 'openai/gpt-4o-mini';
-                    
+
                     // Update script code with data attributes
                     var scriptCode = '<script \n  src="' + siteUrl + '/embed/chat.js"\n';
                     if (primaryColor !== '#FF6417') {
@@ -7433,10 +7460,36 @@
                         scriptCode += '  data-model="' + model + '"\n';
                     }
                     scriptCode += '><\/script>';
-                    
+
                     var scriptElement = document.getElementById('embedScriptCode');
                     if (scriptElement) {
                         scriptElement.textContent = scriptCode;
+                    }
+
+                    // Generate React/Next.js code
+                    var reactCode = '<script\n  id="chatrag-embed"\n  dangerouslySetInnerHTML={{ __html: `\n    (function(){\n      var s = document.createElement(\'script\');\n      s.src = \'' + siteUrl + '/embed/chat.js\';\n      s.async = true;\n';
+
+                    if (primaryColor !== '#FF6417') {
+                        reactCode += '      s.setAttribute(\'data-primary-color\', \'' + primaryColor + '\');\n';
+                    }
+                    if (title !== 'ChatRAG Assistant') {
+                        reactCode += '      s.setAttribute(\'data-title\', \'' + title.replace(/'/g, "\\'") + '\');\n';
+                    }
+                    if (position !== 'bottom-right') {
+                        reactCode += '      s.setAttribute(\'data-position\', \'' + position + '\');\n';
+                    }
+                    if (greeting !== 'Hello! Development help you today?') {
+                        reactCode += '      s.setAttribute(\'data-greeting\', \'' + greeting.replace(/'/g, "\\'") + '\');\n';
+                    }
+                    if (model !== 'openai/gpt-4o-mini') {
+                        reactCode += '      s.setAttribute(\'data-model\', \'' + model + '\');\n';
+                    }
+
+                    reactCode += '      document.body.appendChild(s);\n    })();\n  ` }}\n/>';
+
+                    var reactElement = document.getElementById('embedReactCode');
+                    if (reactElement) {
+                        reactElement.textContent = reactCode;
                     }
                 }
             };
@@ -7966,7 +8019,17 @@
                     }
                 });
             }
-            
+
+            var copyReactBtn = document.getElementById('copyReactBtn');
+            if (copyReactBtn) {
+                copyReactBtn.addEventListener('click', function() {
+                    var code = document.getElementById('embedReactCode');
+                    if (code && embedManager.copyToClipboard) {
+                        embedManager.copyToClipboard(code.textContent);
+                    }
+                });
+            }
+
             // Update embed codes when site URL changes
             var siteUrlInput = document.getElementById('NEXT_PUBLIC_SITE_URL');
             if (siteUrlInput) {
