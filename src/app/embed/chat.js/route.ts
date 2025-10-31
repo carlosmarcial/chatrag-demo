@@ -895,7 +895,7 @@ export async function GET(request: NextRequest) {
   return new NextResponse(widgetScript, {
     headers: {
       'Content-Type': 'application/javascript',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'public, max-age=60, s-maxage=60',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
       'Access-Control-Allow-Headers': 'Content-Type',
