@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
 (function() {
   'use strict';
   
-  // Minimal-safe renderer (no regex to avoid parsing issues)
+  // Enhanced markdown renderer with support for headers, lists, tables, bold, italic, code
   function escapeHtml(s){
     return s
       .replaceAll('&','&amp;')
@@ -116,20 +116,196 @@ export async function GET(request: NextRequest) {
       .replaceAll('"','&quot;')
       .replaceAll("'",'&#39;');
   }
-  function linkify(s){
-    // No regex usage to avoid any parser issues; simple space-based tokenization
-    const parts = s.split(' ');
-    for (let i=0;i<parts.length;i++){
-      const p = parts[i];
-      if (p.startsWith('http://') || p.startsWith('https://')){
-        parts[i] = '<a href="'+p+'" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">'+p+'<\/a>';
+
+  function renderMarkdown(text) {
+    if (!text) return '';
+
+    const lines = text.split('\\n');
+    let html = '';
+    let inCodeBlock = false;
+    let codeBlockContent = '';
+    let inTable = false;
+    let tableRows = [];
+    let inList = false;
+    let listItems = [];
+    let listType = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Handle code blocks
+      if (line.trim().startsWith('\`\`\`')) {
+        if (inCodeBlock) {
+          // Close code block
+          html += '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;overflow-x:auto;margin:8px 0;"><code style="font-family:monospace;font-size:13px;white-space:pre;">' + escapeHtml(codeBlockContent.trim()) + '<\/code><\/pre>';
+          codeBlockContent = '';
+          inCodeBlock = false;
+        } else {
+          // Start code block
+          inCodeBlock = true;
+        }
+        continue;
       }
+
+      if (inCodeBlock) {
+        codeBlockContent += line + '\\n';
+        continue;
+      }
+
+      // Handle tables
+      if (line.includes('|') && line.trim().startsWith('|')) {
+        if (!inTable) {
+          inTable = true;
+          tableRows = [];
+        }
+        tableRows.push(line);
+        continue;
+      } else if (inTable) {
+        // End of table
+        html += renderTable(tableRows);
+        tableRows = [];
+        inTable = false;
+      }
+
+      // Handle lists
+      const listMatch = line.match(/^(\\s*)([-*]|\\d+\\.)\\s+(.+)$/);
+      if (listMatch) {
+        const currentListType = listMatch[2].match(/\\d+\\./) ? 'ol' : 'ul';
+
+        if (!inList) {
+          inList = true;
+          listType = currentListType;
+          listItems = [];
+        } else if (listType !== currentListType) {
+          // Close previous list and start new one
+          html += \`<\${listType} style="margin:8px 0;padding-left:24px;">\`;
+          listItems.forEach(item => {
+            html += \`<li style="margin:4px 0;">\${processInlineMarkdown(item)}<\/li>\`;
+          });
+          html += \`</\${listType}>\`;
+          listItems = [];
+          listType = currentListType;
+        }
+
+        listItems.push(listMatch[3]);
+        continue;
+      } else if (inList) {
+        // End of list
+        html += \`<\${listType} style="margin:8px 0;padding-left:24px;">\`;
+        listItems.forEach(item => {
+          html += \`<li style="margin:4px 0;">\${processInlineMarkdown(item)}<\/li>\`;
+        });
+        html += \`</\${listType}>\`;
+        listItems = [];
+        inList = false;
+        listType = '';
+      }
+
+      // Handle headers
+      if (line.startsWith('### ')) {
+        html += '<h3 style="font-size:16px;font-weight:600;margin:12px 0 8px 0;color:#333;">' + processInlineMarkdown(line.substring(4)) + '<\/h3>';
+        continue;
+      } else if (line.startsWith('## ')) {
+        html += '<h2 style="font-size:18px;font-weight:600;margin:14px 0 8px 0;color:#333;">' + processInlineMarkdown(line.substring(3)) + '<\/h2>';
+        continue;
+      } else if (line.startsWith('# ')) {
+        html += '<h1 style="font-size:20px;font-weight:600;margin:16px 0 8px 0;color:#333;">' + processInlineMarkdown(line.substring(2)) + '<\/h1>';
+        continue;
+      }
+
+      // Handle empty lines
+      if (line.trim() === '') {
+        html += '<br>';
+        continue;
+      }
+
+      // Regular paragraph
+      html += '<div style="margin:4px 0;">' + processInlineMarkdown(line) + '<\/div>';
     }
-    return parts.join(' ');
+
+    // Close any open blocks
+    if (inCodeBlock) {
+      html += '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;overflow-x:auto;margin:8px 0;"><code style="font-family:monospace;font-size:13px;">' + escapeHtml(codeBlockContent.trim()) + '<\/code><\/pre>';
+    }
+    if (inTable) {
+      html += renderTable(tableRows);
+    }
+    if (inList) {
+      html += \`<\${listType} style="margin:8px 0;padding-left:24px;">\`;
+      listItems.forEach(item => {
+        html += \`<li style="margin:4px 0;">\${processInlineMarkdown(item)}<\/li>\`;
+      });
+      html += \`</\${listType}>\`;
+    }
+
+    return html;
   }
+
+  function renderTable(rows) {
+    if (rows.length < 2) return '';
+
+    let html = '<div style="overflow-x:auto;margin:12px 0;"><table style="border-collapse:collapse;width:100%;font-size:13px;background:white;border:1px solid #ddd;">';
+
+    // Header row
+    const headerCells = rows[0].split('|').filter(cell => cell.trim());
+    html += '<thead><tr style="background:#f5f5f5;">';
+    headerCells.forEach(cell => {
+      html += \`<th style="border:1px solid #ddd;padding:8px;text-align:left;font-weight:600;">\${processInlineMarkdown(cell.trim())}<\/th>\`;
+    });
+    html += '<\/tr><\/thead>';
+
+    // Skip separator row (row 1)
+    html += '<tbody>';
+    for (let i = 2; i < rows.length; i++) {
+      const cells = rows[i].split('|').filter(cell => cell.trim());
+      html += '<tr>';
+      cells.forEach(cell => {
+        html += \`<td style="border:1px solid #ddd;padding:8px;">\${processInlineMarkdown(cell.trim())}<\/td>\`;
+      });
+      html += '<\/tr>';
+    }
+    html += '<\/tbody><\/table><\/div>';
+
+    return html;
+  }
+
+  function processInlineMarkdown(text) {
+    // Process inline code first (to protect it from other formatting)
+    const codeRegex = /\`([^\`]+)\`/g;
+    const codePlaceholders = [];
+    text = text.replace(codeRegex, (match, code) => {
+      const placeholder = \`__CODE_\${codePlaceholders.length}__\`;
+      codePlaceholders.push('<code style="background:#f5f5f5;padding:2px 6px;border-radius:3px;font-family:monospace;font-size:12px;">' + escapeHtml(code) + '<\/code>');
+      return placeholder;
+    });
+
+    // Escape HTML
+    text = escapeHtml(text);
+
+    // Bold: **text** or __text__
+    text = text.replace(/\\*\\*(.+?)\\*\\*/g, '<strong>$1<\/strong>');
+    text = text.replace(/__(.+?)__/g, '<strong>$1<\/strong>');
+
+    // Italic: *text* or _text_ (but not in middle of words)
+    text = text.replace(/(^|\\s)\\*(.+?)\\*($|\\s)/g, '$1<em>$2<\/em>$3');
+    text = text.replace(/(^|\\s)_(.+?)_($|\\s)/g, '$1<em>$2<\/em>$3');
+
+    // Links
+    const linkRegex = /https?:\\/\\/[^\\s]+/g;
+    text = text.replace(linkRegex, (url) => {
+      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">' + url + '<\/a>';
+    });
+
+    // Restore code placeholders
+    codePlaceholders.forEach((code, i) => {
+      text = text.replace(\`__CODE_\${i}__\`, code);
+    });
+
+    return text;
+  }
+
   function renderText(t){
-    // Split on actual newline characters and join with <br> tags
-    return linkify(escapeHtml(t)).split('\\n').join('<br>');
+    return renderMarkdown(t);
   }
   
   // Configuration
