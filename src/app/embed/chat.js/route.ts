@@ -61,21 +61,21 @@ export async function GET(request: NextRequest) {
       try {
         const suggestionsStr = env.NEXT_PUBLIC_EMBED_SUGGESTIONS;
         return suggestionsStr ? JSON.parse(suggestionsStr) : [
-          'Who created ChatRAG?',
-          'How many chatbots can I build with ChatRAG?',
-          'Do I own the chatbots I create?',
-          'Can I build a business on top of ChatRAG?',
-          "What's included in the Starter vs Complete plans?",
-          'How do I connect WhatsApp and other channels?'
+          'Who is the creator of ChatRAG?',
+          'How much does ChatRAG cost and is it a one-time payment?',
+          'Do I really own the chatbots I create or is there vendor lock-in?',
+          'Can I build unlimited chatbots for my clients without extra fees?',
+          'What vector database and AI models does ChatRAG use?',
+          'How does ChatRAG compare to Chatbase in pricing and features?'
         ];
       } catch (e) {
         return [
-          'Who created ChatRAG?',
-          'How many chatbots can I build with ChatRAG?',
-          'Do I own the chatbots I create?',
-          'Can I build a business on top of ChatRAG?',
-          "What's included in the Starter vs Complete plans?",
-          'How do I connect WhatsApp and other channels?'
+          'Who is the creator of ChatRAG?',
+          'How much does ChatRAG cost and is it a one-time payment?',
+          'Do I really own the chatbots I create or is there vendor lock-in?',
+          'Can I build unlimited chatbots for my clients without extra fees?',
+          'What vector database and AI models does ChatRAG use?',
+          'How does ChatRAG compare to Chatbase in pricing and features?'
         ];
       }
     })()
