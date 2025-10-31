@@ -337,14 +337,18 @@ export async function GET(request: NextRequest) {
       pill.textContent = suggestion;
       pill.style.cssText = \`
         padding: 8px 14px;
-        border-radius: 20px;
+        border-radius: 16px;
         border: 1px solid #ddd;
         background: white;
         color: #333;
-        font-size: 13px;
+        font-size: 12px;
         cursor: pointer;
         transition: all 0.2s;
-        white-space: nowrap;
+        white-space: normal;
+        word-break: break-word;
+        text-align: center;
+        line-height: 1.3;
+        max-width: 280px;
         font-family: inherit;
       \`;
       
