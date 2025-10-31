@@ -234,7 +234,7 @@ async function uploadAndParseDocument(filePath: string): Promise<{ chunks: strin
   const uploadResponse = await fetch('https://api.cloud.llamaindex.ai/api/v1/parsing/upload', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.NEXT_PUBLIC_LLAMA_CLOUD_API_KEY}`
+      'Authorization': `Bearer ${env.LLAMA_CLOUD_API_KEY}`
     },
     body: formData
   });
@@ -264,7 +264,7 @@ async function uploadAndParseDocument(filePath: string): Promise<{ chunks: strin
     
     const statusResponse = await fetch(`https://api.cloud.llamaindex.ai/api/v1/parsing/job/${jobId}`, {
       headers: {
-        'Authorization': `Bearer ${env.NEXT_PUBLIC_LLAMA_CLOUD_API_KEY}`,
+        'Authorization': `Bearer ${env.LLAMA_CLOUD_API_KEY}`,
         'Accept': 'application/json'
       }
     });
@@ -296,7 +296,7 @@ async function uploadAndParseDocument(filePath: string): Promise<{ chunks: strin
   // Get the results
   const resultResponse = await fetch(`https://api.cloud.llamaindex.ai/api/v1/parsing/job/${jobId}/result/markdown`, {
     headers: {
-      'Authorization': `Bearer ${env.NEXT_PUBLIC_LLAMA_CLOUD_API_KEY}`,
+      'Authorization': `Bearer ${env.LLAMA_CLOUD_API_KEY}`,
       'Accept': 'application/json'
     }
   });

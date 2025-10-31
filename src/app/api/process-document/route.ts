@@ -171,7 +171,7 @@ async function uploadToLlamaCloud(buffer: Buffer, filename: string): Promise<Lla
   const uploadResponse = await fetch('https://api.cloud.llamaindex.ai/api/parsing/upload', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.NEXT_PUBLIC_LLAMA_CLOUD_API_KEY}`
+      'Authorization': `Bearer ${env.LLAMA_CLOUD_API_KEY}`
     },
     body: formData,
     timeout: 60000
@@ -197,7 +197,7 @@ async function waitForJobCompletion(jobId: string, maxAttempts = 40): Promise<vo
         `https://api.cloud.llamaindex.ai/api/parsing/job/${jobId}`,
         {
           headers: {
-            'Authorization': `Bearer ${env.NEXT_PUBLIC_LLAMA_CLOUD_API_KEY}`,
+            'Authorization': `Bearer ${env.LLAMA_CLOUD_API_KEY}`,
             'Accept': 'application/json'
           }
         }
@@ -292,7 +292,7 @@ async function processWithLlamaCloud(jobId: string): Promise<LlamaCloudProcessin
     `https://api.cloud.llamaindex.ai/api/parsing/job/${jobId}/result/markdown`,
     {
       headers: {
-        'Authorization': `Bearer ${env.NEXT_PUBLIC_LLAMA_CLOUD_API_KEY}`,
+        'Authorization': `Bearer ${env.LLAMA_CLOUD_API_KEY}`,
         'Accept': 'application/json'
       }
     }
