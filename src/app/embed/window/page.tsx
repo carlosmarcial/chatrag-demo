@@ -32,7 +32,7 @@ function renderMarkdown(text: string): JSX.Element {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 hover:text-blue-800 underline"
+        className="text-blue-600 hover:text-blue-800 underline break-all"
       >
         {linkText}
       </a>
@@ -239,7 +239,7 @@ export default function EmbedWindow() {
                 backgroundColor: message.role === 'user' ? config.primaryColor : undefined,
               }}
             >
-              <div className="text-sm leading-relaxed whitespace-pre-wrap">
+              <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                 {renderMarkdown(message.content)}
               </div>
             </div>
