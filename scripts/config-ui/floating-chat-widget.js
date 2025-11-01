@@ -946,7 +946,7 @@ class FloatingChatWidget {
         
         // Replace URLs with clickable links
         formattedText = formattedText.replace(urlRegex, (url) => {
-            return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #1e40af; text-decoration: underline; cursor: pointer; word-break: break-all;" onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#1e40af'">${url}</a>`;
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #1e40af; text-decoration: underline; cursor: pointer; word-break: break-all; overflow-wrap: break-word;" onmouseover="this.style.color='#1d4ed8'" onmouseout="this.style.color='#1e40af'">${url}</a>`;
         });
         
         // Replace emails with clickable mailto links

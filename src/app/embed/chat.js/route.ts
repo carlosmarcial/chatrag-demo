@@ -293,7 +293,7 @@ export async function GET(request: NextRequest) {
     // Links
     const linkRegex = /https?:\\/\\/[^\\s<>"']+[^\\s<>"'.,!?;:()]/g;
     text = text.replace(linkRegex, (url) => {
-      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">' + url + '<\/a>';
+      return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;word-break:break-all;overflow-wrap:break-word;">' + url + '<\/a>';
     });
 
     // Restore code placeholders
