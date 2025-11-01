@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { env } from '@/lib/env';
 import { checkRateLimit, getRateLimitIdentifier } from '@/lib/embed-rate-limit';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { streamText } from 'ai';
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { z } from 'zod/v3';
 import { ExtendedMessage, toAPIMessage } from '@/types/chat';
 import { enhancedRetrieveChunks } from '@/lib/enhanced-rag-retrieval';
+// Import URL extraction utilities
+import { formatURLsForContext, createLinkUsageInstructions, type ExtractedURL } from '@/lib/url-extractor';
 
 // Use Node.js runtime instead of Edge
 export const runtime = 'nodejs';
@@ -141,6 +144,9 @@ export async function POST(request: NextRequest) {
           // Group chunks by document
           const chunksByDocument = new Map<string, Array<{content: string, similarity: number}>>();
 
+          // Collect URLs from chunk metadata
+          const collectedURLs: ExtractedURL[] = [];
+
           for (const chunk of enhancedResult.chunks) {
             // Extract document name from chunk content
             const match = chunk.content.match(/^Document: ([^.]+\.[^.]+)\. Chunk (\d+) of \d+\. Content: /);
@@ -153,6 +159,18 @@ export async function POST(request: NextRequest) {
               content: chunk.content,
               similarity: chunk.similarity
             });
+
+            // Fetch chunk metadata to extract URLs
+            const supabase = getSupabaseAdmin();
+            const { data: chunkData } = await supabase
+              .from('document_chunks')
+              .select('metadata')
+              .eq('id', chunk.chunk_id)
+              .single();
+
+            if (chunkData?.metadata?.urls && Array.isArray(chunkData.metadata.urls)) {
+              collectedURLs.push(...chunkData.metadata.urls);
+            }
           }
 
           // Add organized chunks to context
@@ -162,6 +180,20 @@ export async function POST(request: NextRequest) {
             contextParts.push(...formattedChunks);
           }
           contextParts.push("=== END OF RELEVANT INFORMATION ===\n");
+
+          // Add collected URLs to context if any were found
+          if (collectedURLs.length > 0) {
+            // Remove duplicates based on URL
+            const uniqueURLs = Array.from(
+              new Map(collectedURLs.map(url => [url.url, url])).values()
+            );
+
+            const urlSection = formatURLsForContext(uniqueURLs);
+            if (urlSection) {
+              contextParts.push(urlSection);
+              console.log(`[EMBED RAG] Added ${uniqueURLs.length} unique URLs from chunks to context`);
+            }
+          }
 
           context = contextParts.join('\n\n');
           console.log(`[EMBED RAG] Built context with ${context.length} characters from ${chunksByDocument.size} documents`);
@@ -179,7 +211,18 @@ export async function POST(request: NextRequest) {
 
     // Use the same system prompt format as the main chat API
     // Get the RAG system prompt from environment (same as main chat)
-    let systemPrompt = 'You are a helpful AI assistant with access to a knowledge base. When answering questions:\n\n1. If the context contains relevant information, use it to provide accurate and specific answers\n2. If information is not available in the context, say so clearly and suggest alternative approaches\n3. Always cite your sources when referencing specific documents\n4. Provide balanced, objective information rather than opinions\n5. For technical topics, include practical steps or examples when appropriate\n\nContext:\n{{context}}';
+    let systemPrompt = `You are a helpful AI assistant with access to a knowledge base. When answering questions:
+
+1. If the context contains relevant information, use it to provide accurate and specific answers
+2. If information is not available in the context, say so clearly and suggest alternative approaches
+3. Always cite your sources when referencing specific documents
+4. Provide balanced, objective information rather than opinions
+5. For technical topics, include practical steps or examples when appropriate
+
+${createLinkUsageInstructions()}
+
+Context:
+{{context}}`;
     
     // Use the custom RAG system prompt if available
     if (env.RAG_SYSTEM_PROMPT) {
