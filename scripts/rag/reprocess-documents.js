@@ -130,6 +130,56 @@ async function generateEmbedding(text) {
   }
 }
 
+// URL extraction utilities (simplified version for reprocessing)
+function extractURLs(text) {
+  const urls = [];
+  const urlsMap = new Map();
+
+  // Pattern for markdown links [text](url)
+  const markdownPattern = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/gi;
+  const markdownMatches = text.matchAll(markdownPattern);
+  for (const match of markdownMatches) {
+    const [, linkText, url] = match;
+    urlsMap.set(url, { url, description: linkText, category: categorizeURL(url) });
+  }
+
+  // Pattern for standard URLs
+  const standardPattern = /https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)/gi;
+  const standardMatches = text.matchAll(standardPattern);
+  for (const match of standardMatches) {
+    const url = match[0];
+    if (!urlsMap.has(url)) {
+      urlsMap.set(url, { url, description: `Link to ${url}`, category: categorizeURL(url) });
+    }
+  }
+
+  return {
+    urls: Array.from(urlsMap.values()),
+    hasLinks: urlsMap.size > 0,
+    linkCount: urlsMap.size
+  };
+}
+
+function categorizeURL(url) {
+  const lowerURL = url.toLowerCase();
+  if (lowerURL.includes('polar.sh') || lowerURL.includes('stripe.com') ||
+      lowerURL.includes('checkout') || lowerURL.includes('payment') || lowerURL.includes('buy')) {
+    return 'payment';
+  }
+  if (lowerURL.includes('product') || lowerURL.includes('pricing') || lowerURL.includes('shop')) {
+    return 'product';
+  }
+  if (lowerURL.includes('docs') || lowerURL.includes('documentation') ||
+      lowerURL.includes('guide') || lowerURL.includes('wiki')) {
+    return 'documentation';
+  }
+  if (lowerURL.includes('twitter.com') || lowerURL.includes('x.com') ||
+      lowerURL.includes('linkedin.com') || lowerURL.includes('github.com')) {
+    return 'social';
+  }
+  return 'other';
+}
+
 async function processDocumentChunks(document) {
   console.log(`\nProcessing document: ${document.filename} (ID: ${document.id})`);
   
@@ -185,12 +235,32 @@ async function processDocumentChunks(document) {
         batch.map(chunk => generateEmbedding(chunk))
       );
       
-      // Prepare chunk records
-      const chunkRecords = batch.map((chunk, index) => ({
-        document_id: document.id,
-        content: chunk,
-        embedding: embeddings[index]
-      }));
+      // Prepare chunk records with metadata and URL extraction
+      const chunkRecords = batch.map((chunk, index) => {
+        const globalChunkIndex = i + index;
+        const chunkPosition = globalChunkIndex + 1;
+
+        // Extract URLs from chunk content
+        const urlMetadata = extractURLs(chunk);
+
+        return {
+          document_id: document.id,
+          content: chunk,
+          embedding: embeddings[index],
+          metadata: {
+            document_title: document.filename,
+            chunk_index: globalChunkIndex,
+            chunk_position: chunkPosition,
+            total_chunks: totalChunks,
+
+            // URL metadata for link inclusion in AI responses
+            urls: urlMetadata.urls,
+            has_urls: urlMetadata.hasLinks,
+            url_count: urlMetadata.linkCount,
+            url_categories: [...new Set(urlMetadata.urls.map(u => u.category))],
+          }
+        };
+      });
       
       // Insert chunks
       const { error: insertError } = await supabase

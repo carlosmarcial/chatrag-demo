@@ -6,6 +6,7 @@ import { DocumentContent } from '@/types/chat';
 import { createClient } from '@supabase/supabase-js';
 import { getQueryEmbedding } from '@/lib/document-processor';
 import { v4 as uuidv4 } from 'uuid';
+import { extractURLs } from '@/lib/url-extractor';
 
 // Use Node.js runtime
 export const runtime = 'nodejs';
@@ -399,21 +400,32 @@ async function storeDocument(filename: string, content: string, chunks: string[]
             if (result.status === 'fulfilled') {
               const globalChunkIndex = i + index;
               const chunkPosition = globalChunkIndex + 1;
+              const chunkContent = batch[index];
+
+              // Extract URLs from chunk content for link inclusion in AI responses
+              const urlMetadata = extractURLs(chunkContent);
+
               return {
                 id: uuidv4(),
                 document_id: documentId,
-                content: `Document: ${filename}. Chunk ${chunkPosition} of ${chunks.length}. Content: ${batch[index]}`,
+                content: `Document: ${filename}. Chunk ${chunkPosition} of ${chunks.length}. Content: ${chunkContent}`,
                 embedding: result.value,
                 metadata: {
                   document_title: filename,
                   chunk_index: globalChunkIndex,
                   chunk_position: chunkPosition,
-                  total_chunks: chunks.length
+                  total_chunks: chunks.length,
+
+                  // URL metadata for link inclusion in AI responses
+                  urls: urlMetadata.urls,
+                  has_urls: urlMetadata.hasLinks,
+                  url_count: urlMetadata.linkCount,
+                  url_categories: [...new Set(urlMetadata.urls.map(u => u.category))],
                 }
               };
             }
             // Log the failure but continue processing
-            console.error(`Failed to generate embedding for chunk at index ${i + index}:`, 
+            console.error(`Failed to generate embedding for chunk at index ${i + index}:`,
               result.status === 'rejected' ? result.reason : 'Unknown error');
             return null;
           })
