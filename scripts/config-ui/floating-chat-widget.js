@@ -939,7 +939,7 @@ class FloatingChatWidget {
             .replace(/'/g, '&#39;');
         
         // URL regex pattern - matches http/https URLs
-        const urlRegex = /(https?:\/\/[^\s<>"']+[^\s<>"'.,!?;:])/gi;
+        const urlRegex = /(https?:\/\/[^\s<>"']+[^\s<>"'.,!?;:()])/gi;
         
         // Email regex pattern
         const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi;

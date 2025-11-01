@@ -291,7 +291,7 @@ export async function GET(request: NextRequest) {
     text = text.replace(/(^|\\s)_(.+?)_($|\\s)/g, '$1<em>$2<\/em>$3');
 
     // Links
-    const linkRegex = /https?:\\/\\/[^\\s]+/g;
+    const linkRegex = /https?:\\/\\/[^\\s<>"']+[^\\s<>"'.,!?;:()]/g;
     text = text.replace(linkRegex, (url) => {
       return '<a href="' + url + '" target="_blank" rel="noopener noreferrer" style="color:#1e40af;text-decoration:underline;">' + url + '<\/a>';
     });
