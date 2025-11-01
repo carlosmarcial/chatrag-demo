@@ -25,7 +25,12 @@ function renderMarkdown(text: string): JSX.Element {
 
     // Add the link
     const linkText = match[1];
-    const url = match[2];
+    let url = match[2];
+
+    // Clean URL: remove any trailing punctuation that might have been incorrectly captured
+    // This handles cases where URLs might have trailing ), ., ), etc.
+    url = url.replace(/[)\].,;:]+$/, '');
+
     parts.push(
       <a
         key={`link-${keyCounter++}`}
