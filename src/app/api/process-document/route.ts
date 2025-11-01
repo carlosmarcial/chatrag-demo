@@ -10,6 +10,7 @@ import { extractURLs } from '@/lib/url-extractor';
 
 // Use Node.js runtime
 export const runtime = 'nodejs';
+// URL extraction enabled for document chunks
 
 const STORAGE_BUCKET = 'chat-attachments';
 
