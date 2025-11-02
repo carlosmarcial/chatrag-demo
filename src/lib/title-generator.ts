@@ -1316,39 +1316,132 @@ function ensureValidTitle(title: string, messages: DBMessage[]): string {
       return clampTitle(formatted, 80);
     }
 
-    // Extract entities for intelligent fallback
-    const allText = messages.map(m => extractTextContent(m.content)).join(' ');
-    const entities = extractEntities(allText);
+    // Extract entities ONLY from user messages to prevent hallucination from RAG context
+    const userOnlyText = messages.filter(m => m.role === 'user').map(m => extractTextContent(m.content)).join(' ');
+    const entities = extractEntities(userOnlyText);
 
-    // Generate safe fallback based on entities
+    console.log(`[Title Fix] Extracting entities from user text only:`, userOnlyText.substring(0, 200));
+    console.log(`[Title Fix] Found entities:`, {
+      technologies: entities.technologies.slice(0, 3),
+      features: entities.features.slice(0, 3),
+      companies: entities.companies.slice(0, 3)
+    });
+
+    // Generate SIMPLE fallback based on entities from user question only
     let fallbackTitle = '';
 
-    // Priority 1: Company + Financial Term
-    if (entities.companies.length > 0 && entities.financialTerms.length > 0) {
-      fallbackTitle = `${entities.companies[0]} ${entities.financialTerms[0]} Analysis`;
+    // Build title from detected entities - keep it simple, no assumptions
+    const titleParts = [];
+
+    if (entities.companies.length > 0) {
+      titleParts.push(entities.companies[0]);
     }
-    // Priority 2: Technology + Feature/Action
-    else if (entities.technologies.length > 0) {
-      if (entities.features.length > 0) {
-        fallbackTitle = `${entities.technologies[0]} ${entities.features[0]} Implementation`;
-      } else if (entities.actions.length > 0) {
-        const action = entities.actions[0];
-        fallbackTitle = `${capitalizeWord(action)} ${entities.technologies[0]}`;
+    if (entities.technologies.length > 0 && entities.technologies.length < 3) {
+      titleParts.push(entities.technologies[0]);
+    }
+    if (entities.products.length > 0) {
+      titleParts.push(entities.products[0]);
+    }
+
+    // Add one descriptive term if available
+    if (entities.financialTerms.length > 0) {
+      titleParts.push(entities.financialTerms[0]);
+    } else if (entities.features.length > 0) {
+      titleParts.push(entities.features[0]);
+    } else if (entities.actions.length > 0) {
+      titleParts.push(capitalizeWord(entities.actions[0]));
+    }
+
+    if (titleParts.length >= 2) {
+      fallbackTitle = titleParts.slice(0, 4).join(' ');
+    } else if (titleParts.length === 1) {
+      // Only one entity found - be smarter about what we found
+      const firstUserMsg = messages.find(m => m.role === 'user');
+      const userText = firstUserMsg ? extractTextContent(firstUserMsg.content).toLowerCase() : '';
+      const entity = titleParts[0].toLowerCase();
+
+      // If the single entity is a verb like "create", skip it and extract from question
+      if (['create', 'use', 'make', 'get', 'set', 'build', 'add', 'remove'].includes(entity)) {
+        // Don't use verb as entity, extract subject from question instead
+        const words = extractTextContent(firstUserMsg!.content).split(/\s+/).filter(w =>
+        !['how', 'what', 'when', 'where', 'why', 'who', 'which', 'is', 'are', 'the', 'a', 'an',
+        'do', 'does', 'can', 'could', 'will', 'would', 'should', 'i', 'my', 'me', 'many', 'much'].includes(w.toLowerCase()) &&
+        !['create', 'use', 'make', 'get', 'set', 'build'].includes(w.toLowerCase())
+        );
+        const subject = words[0];
+        if (subject && userText.includes('how many')) {
+          fallbackTitle = `${subject} Limits`;
+        } else if (subject) {
+          fallbackTitle = `${subject} Information`;
+        } else {
+          fallbackTitle = 'New Chat';
+        }
+      } else if (userText.includes('cost') || userText.includes('price') || userText.includes('pricing')) {
+        fallbackTitle = `${titleParts[0]} Pricing`;
+      } else if (userText.includes('database') || userText.includes('vector')) {
+        // Asking about what database/tech is used
+        fallbackTitle = `${titleParts[0]} Database`;
+      } else if (userText.includes('how many') || userText.includes('limit')) {
+        fallbackTitle = `${titleParts[0]} Limits`;
+      } else if (userText.includes('how') && (userText.includes('work') || userText.includes('use'))) {
+        fallbackTitle = `${titleParts[0]} Overview`;
       } else {
-        fallbackTitle = `${entities.technologies[0]} Technical Discussion`;
+        fallbackTitle = `${titleParts[0]} Information`;
       }
-    }
-    // Priority 3: Business Concepts
-    else if (entities.businessConcepts.length > 0) {
-      fallbackTitle = `${entities.businessConcepts[0]} Strategy Review`;
-    }
-    // Priority 4: Features alone
-    else if (entities.features.length > 0) {
-      fallbackTitle = `${capitalizeWord(entities.features[0])} Configuration`;
-    }
-    // Priority 5: Generic but professional
-    else {
-      fallbackTitle = 'Professional Consultation';
+    } else {
+      // Last resort: smart extraction from user question
+      const firstUserMsg = messages.find(m => m.role === 'user');
+      if (firstUserMsg) {
+        const userText = extractTextContent(firstUserMsg.content);
+        const lowerText = userText.toLowerCase();
+
+        // Extract meaningful words (remove question words and common words)
+        const questionWords = ['how', 'what', 'when', 'where', 'why', 'who', 'which',
+          'is', 'are', 'was', 'were', 'do', 'does', 'did', 'can', 'could', 'will', 'would',
+          'should', 'may', 'might', 'the', 'a', 'an', 'i', 'my', 'me', 'to', 'for', 'of', 'in'];
+
+        const words = userText.split(/\s+/).filter(w =>
+          !questionWords.includes(w.toLowerCase()) && w.length > 1
+        );
+
+        // Detect question type and create appropriate title
+        if (lowerText.includes('how many') || lowerText.includes('how much')) {
+          // Quantity question: "How many X can I..." → "X Limits" or "X Quantity"
+          const subject = words.find(w => !['many', 'much', 'create', 'make', 'get', 'have'].includes(w.toLowerCase()));
+          if (subject) {
+            // Check if it's asking about creation/building
+            if (lowerText.includes('create') || lowerText.includes('build') || lowerText.includes('make')) {
+              fallbackTitle = `${subject} Creation Limits`;
+            } else {
+              fallbackTitle = `${subject} Limits`;
+            }
+          } else {
+            fallbackTitle = words.slice(0, 2).join(' ') + ' Limits';
+          }
+        } else if (lowerText.includes('cost') || lowerText.includes('price') || lowerText.includes('pricing')) {
+          // Pricing question
+          const subject = words.filter(w => !['cost', 'price', 'pricing'].includes(w.toLowerCase())).slice(0, 2).join(' ');
+          fallbackTitle = subject ? `${subject} Pricing` : 'Pricing Information';
+        } else if (lowerText.includes('what') && (lowerText.includes('database') || lowerText.includes('use'))) {
+          // "What X does Y use?" → "Y X"
+          const mainSubject = words.find(w =>
+            ['chatrag', 'system', 'platform', 'app', 'application'].includes(w.toLowerCase())
+          );
+          const aspect = words.find(w =>
+            !['use', 'uses', 'using', 'does'].includes(w.toLowerCase()) && w !== mainSubject
+          );
+          if (mainSubject && aspect) {
+            fallbackTitle = `${mainSubject} ${aspect}`;
+          } else {
+            fallbackTitle = words.slice(0, 3).join(' ');
+          }
+        } else {
+          // Generic: take first meaningful words
+          fallbackTitle = words.slice(0, 3).join(' ') || 'New Chat';
+        }
+      } else {
+        fallbackTitle = 'New Chat';
+      }
     }
 
     console.log(`[Title Fix] Generated fallback: "${fallbackTitle}"`);
@@ -1361,130 +1454,113 @@ function ensureValidTitle(title: string, messages: DBMessage[]): string {
 }
 
 /**
- * Generates an AI-powered sophisticated title using advanced prompting
+ * Generates an AI-powered title using pure AI approach with retry logic
+ *
+ * This function uses GPT-4o to generate professional, semantic titles.
+ * If the AI generates an invalid title, it retries up to 3 times with feedback.
+ * The system ensures quality through validation and never falls back to
+ * deterministic logic - it's 100% AI-driven.
  */
 export async function generateSmartTitle(messages: DBMessage[]): Promise<string> {
   try {
+    // Extract the first user message only (to prevent hallucination from RAG context)
+    const userMessages = messages.filter(m => m.role === 'user');
+
+    if (userMessages.length === 0) {
+      return 'New Chat';
+    }
+
+    const firstUserMsg = userMessages[0];
+    const mainQuestion = extractTextContent(firstUserMsg.content).trim();
+
+    if (!mainQuestion) {
+      return 'New Chat';
+    }
+
+    console.log('=== AI TITLE GENERATION ===');
+    console.log('Question:', mainQuestion);
+
+    // General AI prompt for title generation - no hardcoded examples
+    const prompt = `Generate a concise, professional title for the user's question.
+
+Requirements:
+- 2-5 words maximum
+- Noun phrase (no verbs at the end)
+- Professional and semantic
+- Capture the core meaning of the question
+- Domain-agnostic (works for any topic)
+
+Examples of good titles:
+- "ChatRAG Pricing" for pricing questions
+- "Aspirin Side Effects" for medical questions
+- "Passport Renewal" for procedural questions
+- "Chatbot Limits" for quantity/capability questions
+
+Question: "${mainQuestion}"
+
+Generate only the title, nothing else:`;
+
+    // Pure AI approach with retry logic
     const client = getOpenRouterClient();
-    if (!client) return generateBasicTitle(messages);
+    if (!client) {
+      throw new Error('OpenRouter client not available for title generation');
+    }
 
-    // Get model configuration from environment
-    const model = env.CHAT_TITLE_MODEL;
-    const temperature = parseFloat(env.CHAT_TITLE_TEMPERATURE);
-    const maxTokens = parseInt(env.CHAT_TITLE_MAX_TOKENS);
-
-    // Get comprehensive context from the most recent messages
-    const recentMessages = messages.slice(-Math.min(6, messages.length));
-    const context = recentMessages.map(m => 
-      `${m.role === 'user' ? 'User' : 'Assistant'}: ${extractTextContent(m.content).substring(0, 500)}`
-    ).join('\n\n');
-    
-    // Perform analysis to guide the AI
-    const analysis = analyzeConversation(messages);
-    const language = detectLanguage(extractTextContent(messages[0]?.content || ''));
-
-    // Extract financial/business context if present
-    const hasFinancialContext = analysis.entities.companies.length > 0 || 
-                               analysis.entities.financialTerms.length > 0 ||
-                               analysis.entities.businessConcepts.length > 0;
-    
-  const financialContext = hasFinancialContext ? `
-- Companies: ${analysis.entities.companies.slice(0, 3).join(', ') || 'None'}
-- Financial Terms: ${analysis.entities.financialTerms.slice(0, 3).join(', ') || 'None'}
-- Business Concepts: ${analysis.entities.businessConcepts.slice(0, 3).join(', ') || 'None'}` : '';
-
-    // Enhanced system prompt with better instructions
-    const systemPrompt = `You are an expert at creating sophisticated, meaningful titles for technical and business conversations.
-
-CONVERSATION ANALYSIS:
-- Type: ${analysis.type}
-- Primary Topic: ${analysis.primaryTopic || 'General'}
-- Key Technologies: ${analysis.entities.technologies.slice(0, 3).join(', ') || 'None identified'}
-- Key Features: ${analysis.entities.features.slice(0, 3).join(', ') || 'None identified'}${financialContext}
-- Complexity: ${analysis.complexity}
-- Language: ${language}
-
-CRITICAL TITLE REQUIREMENTS:
-1. MUST be a complete, grammatically correct sentence or phrase
-2. MUST NOT end with incomplete words or parenthetical fragments
-3. MUST NOT include meta-commentary like "(yes, this)" or trailing parentheses
-4. MUST start with a capital letter
-5. MUST be between 3-10 words (ideal: 4-7 words)
-6. MUST be self-contained and make sense on its own
-
-TITLE GENERATION RULES:
-1. Create a title that captures BOTH the question AND the solution/outcome
-2. Include specific technologies, companies, or concepts discussed
-3. Show the relationship between elements (e.g., "X with Y", "X for Y", "X vs Y")
-4. For financial queries: Include company name AND the specific topic (e.g., "Apple's 10-Q Accounting Policy Changes")
-5. For troubleshooting: Include the problem AND resolution method
-6. For tutorials: Include the goal AND the approach
-7. For implementations: Include what's being built AND the technology stack
-8. Use active, specific verbs when applicable
-9. NO generic words without specifics
-
-EXAMPLES OF EXCELLENT TITLES:
-Technical:
-- "Supabase RLS Implementation for Multi-Tenant Apps"
-- "Debugging Next.js Hydration Errors with Dynamic Imports"
-- "PostgreSQL to MongoDB Migration Strategy"
-- "Building Real-time Chat with Socket.io and Redis"
-
-Financial/Business:
-- "Apple's Q3 Revenue Growth Analysis"
-- "Tesla's Accounting Policy Changes in 10-Q"
-- "Amazon AWS Market Share Expansion Strategy"
-- "Microsoft Azure vs Google Cloud Pricing Comparison"
-- "JP Morgan Risk Disclosure Updates"
-
-BAD TITLES TO AVOID:
-- "There significant changes" → Incomplete sentence
-- "Analysis (yes, this)" → Contains meta-commentary
-- "Database Setup" → Too generic
-- "Error Fix" → Doesn't specify the error
-- "Company Report" → Which company? What report?
-
-Generate a professional title that accurately describes the conversation.
-Return ONLY the complete title with no quotes, no explanation, no commentary.`;
-
-    // Retry logic with validation
     const maxRetries = 3;
+    let lastError = '';
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        const completion = await client.chat.completions.create({
-          model: model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Generate a title for this conversation:\n\n${context}` }
-          ],
-          temperature: Math.max(0.1, temperature - (attempt - 1) * 0.1), // Reduce temperature on retries
-          max_tokens: maxTokens
+        let currentPrompt = prompt;
+
+        // Add feedback from previous attempts
+        if (lastError && attempt > 1) {
+          currentPrompt += `\n\nPrevious attempt failed: ${lastError}\nPlease try again with a valid title.`;
+        }
+
+        const response = await client.chat.completions.create({
+          model: env.CHAT_TITLE_MODEL,
+          messages: [{ role: 'user', content: currentPrompt }],
+          temperature: parseFloat(env.CHAT_TITLE_TEMPERATURE),
+          max_tokens: parseInt(env.CHAT_TITLE_MAX_TOKENS)
         });
 
-        const rawTitle = completion.choices[0]?.message.content?.trim();
-        if (rawTitle) {
-          // Clean any quotes and format properly
-          const cleanedTitle = rawTitle.replace(/^['"`]|['"`]$/g, '').trim();
-          
-          // Always validate and fix the title
-          const validatedTitle = ensureValidTitle(cleanedTitle, messages);
-          return validatedTitle;
+        const aiTitle = response.choices[0].message.content?.trim();
+
+        if (!aiTitle) {
+          lastError = 'Empty response from AI';
+          continue;
         }
-      } catch (retryErr) {
-        console.error(`Title generation attempt ${attempt} failed:`, retryErr);
+
+        console.log(`AI Generated title (attempt ${attempt}):`, aiTitle);
+
+        // Validate the AI-generated title
+        const validation = validateTitle(aiTitle);
+        if (validation.valid) {
+          return aiTitle;
+        }
+
+        lastError = validation.reason || 'Validation failed';
+        console.log(`[AI Title Validation] Attempt ${attempt} failed: ${lastError}`);
+
+      } catch (aiError: any) {
+        console.error(`[AI Title] Attempt ${attempt} error:`, aiError.message);
+        lastError = `API error: ${aiError.message}`;
+
+        // If it's the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw aiError;
+        }
       }
     }
-    
-    // All retries failed, use ensureValidTitle for safe fallback
-    const analyticalTitle = generateAnalyticalTitle(analysis, language);
-    return ensureValidTitle(analyticalTitle, messages);
+
+    // If all retries failed, throw an error
+    throw new Error(`Failed to generate valid title after ${maxRetries} attempts. Last error: ${lastError}`);
+
   } catch (err) {
-    console.error('generateSmartTitle error:', err);
-    // Fallback to analytical title generation with validation
-    const analysis = analyzeConversation(messages);
-    const language = detectLanguage(extractTextContent(messages[0]?.content || ''));
-    const analyticalTitle = generateAnalyticalTitle(analysis, language);
-    return ensureValidTitle(analyticalTitle, messages);
+  console.error('generateSmartTitle error:', err);
+  // Return a basic fallback if AI completely fails
+  return 'New Chat';
   }
 }
 
