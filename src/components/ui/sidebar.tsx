@@ -1210,9 +1210,16 @@ export function Sidebar({ isOpen, onClose, onNewChat, onSelectChat, userEmail, o
     return chatMap;
   }, [folders, chats, getChatsByFolder]);
 
+  // Local state for search input to prevent lag
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+
   // Debounced search handler to prevent excessive re-renders
   const debouncedSearchRef = useRef<NodeJS.Timeout | null>(null);
   const debouncedSetSearchQuery = useCallback((query: string) => {
+    // Update local state immediately for responsive input
+    setLocalSearchQuery(query);
+
+    // Debounce the store update
     if (debouncedSearchRef.current) {
       clearTimeout(debouncedSearchRef.current);
     }
@@ -1220,8 +1227,15 @@ export function Sidebar({ isOpen, onClose, onNewChat, onSelectChat, userEmail, o
       startTransition(() => {
         setSearchQuery(query);
       });
-    }, 150); // 150ms delay for search
+    }, 300); // 300ms delay for search
   }, [setSearchQuery]);
+
+  // Sync local state when searchQuery is cleared externally
+  useEffect(() => {
+    if (searchQuery === '') {
+      setLocalSearchQuery('');
+    }
+  }, [searchQuery]);
 
   // Update the debugging useEffect to be more verbose
   useEffect(() => {
@@ -1868,15 +1882,28 @@ export function Sidebar({ isOpen, onClose, onNewChat, onSelectChat, userEmail, o
 
                 {/* Mobile Search Bar */}
                 <div className="lg:hidden border-b border-[#FFE0D0] dark:border-[#2F2F2F] px-4 py-3">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      type="text"
-                      placeholder={t('search')}
-                      value={searchQuery}
-                      onChange={(e) => debouncedSetSearchQuery(e.target.value)}
-                      className="w-full pl-10 bg-[#EFE1D5] dark:bg-[#2F2F2F] border-[#FFE0D0] dark:border-[#424242] focus:ring-[#FF6417] dark:focus:ring-[#424242] h-11"
-                    />
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder={t('search')}
+                        value={localSearchQuery}
+                        onChange={(e) => debouncedSetSearchQuery(e.target.value)}
+                        className="w-full pl-10 bg-[#EFE1D5] dark:bg-[#2F2F2F] border-[#FFE0D0] dark:border-[#424242] focus:ring-[#FF6417] dark:focus:ring-[#424242] h-11"
+                      />
+                    </div>
+                    {onNewChat && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNewChat();
+                        }}
+                        className="flex-shrink-0 h-11 w-11 rounded-xl bg-[#FF6417] hover:bg-[#E55A15] text-white flex items-center justify-center transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#FF6417] focus:ring-offset-2"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -1935,7 +1962,7 @@ export function Sidebar({ isOpen, onClose, onNewChat, onSelectChat, userEmail, o
                           ref={searchInputRef}
                           type="text"
                           placeholder={t('searchChats')}
-                          value={searchQuery}
+                          value={localSearchQuery}
                           onChange={(e) => debouncedSetSearchQuery(e.target.value)}
                           className="w-full bg-[#EFE1D5] dark:bg-[#2F2F2F] border-[#FFE0D0] dark:border-[#424242] focus:ring-[#FF6417] dark:focus:ring-[#424242]"
                         />
@@ -2235,7 +2262,7 @@ export function Sidebar({ isOpen, onClose, onNewChat, onSelectChat, userEmail, o
                                   chat={chat}
                                   isEditing={editingChatId === chat.id}
                                   editingTitle={editingTitle}
-                                  onEditingTitleChange={setEditingTitle}
+                                  onEditingTitleChange={(title) => dispatch({ type: 'UPDATE_EDIT_TITLE', title })}
                                   onEditSubmit={handleRenameSubmit}
                                   onEditCancel={handleRenameCancel}
                                   onChatSelect={handleChatSelect}
@@ -2327,32 +2354,6 @@ export function Sidebar({ isOpen, onClose, onNewChat, onSelectChat, userEmail, o
               </div>
             </div>
 
-            {/* Mobile Floating Action Button for New Chat */}
-            {onNewChat && (
-              <motion.button
-                variants={childVariants}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNewChat();
-                }}
-                className={cn(
-                  "mobile-new-chat-button",
-                  "lg:hidden fixed right-6 z-[10000]",
-                  // Size based on browser - smaller for Chrome Desktop, normal for iOS
-                  (isChromeIOS || isIOSSafari) ? "h-14 w-14" : "h-12 w-12",
-                  "rounded-2xl shadow-lg",
-                  "flex items-center justify-center gap-2",
-                  "bg-[#FF6417] hover:bg-[#E55A15] text-white",
-                  "transition-all duration-200 transform hover:scale-105",
-                  "focus:outline-none focus:ring-2 focus:ring-[#FF6417] focus:ring-offset-2"
-                )}
-                style={getFABStyle(isChromeIOS, isIOSSafari)}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Plus className="h-5 w-5" />
-              </motion.button>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

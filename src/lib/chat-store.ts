@@ -826,15 +826,15 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set({
       searchQuery: query,
       filteredChats: normalizedQuery
-        ? chats.filter(chat => 
+        ? chats.filter(chat =>
             chat.title.toLowerCase().includes(normalizedQuery) ||
-            chat.messages.some(msg => 
-              typeof msg.content === 'string' 
+            (chat.messages || []).some(msg =>
+              typeof msg.content === 'string'
                 ? msg.content.toLowerCase().includes(normalizedQuery)
-                : Array.isArray(msg.content) 
-                  ? msg.content.some(item => 
-                      item.type === 'text' && 
-                      typeof item.text === 'string' && 
+                : Array.isArray(msg.content)
+                  ? msg.content.some(item =>
+                      item.type === 'text' &&
+                      typeof item.text === 'string' &&
                       item.text.toLowerCase().includes(normalizedQuery)
                     )
                   : false
