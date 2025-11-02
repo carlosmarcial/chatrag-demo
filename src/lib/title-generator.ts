@@ -340,8 +340,8 @@ function validateTitle(title: string): { valid: boolean; reason?: string } {
     return { valid: false, reason: 'Title is too short' };
   }
 
-  // Check if title is too long (more than 100 characters is excessive)
-  if (title.length > 100) {
+  // Check if title is too long (more than 80 characters is excessive for a 3-6 word title)
+  if (title.length > 80) {
     return { valid: false, reason: 'Title is too long' };
   }
 
@@ -367,6 +367,12 @@ function validateTitle(title: string): { valid: boolean; reason?: string } {
     /\s+\(?$|^\)?\s+/,          // Hanging parenthesis
     /^[^A-Z]/,                  // Doesn't start with capital letter
     /^(Yes|No|OK|Sure|Maybe),?\s+/i, // Responses as titles
+    // Broken question fragments (missing question words or bad word order)
+    /^(Much|Many|Often|Long)\s+/i, // Starts with "Much", "Many", etc. (broken questions)
+    /^(Does|Do|Did|Will|Would|Should|Can|Could|May|Might)\s+/i, // Starting with auxiliary verb
+    /^(How|What|When|Where|Why|Which|Who)\s+/i, // Still in question format
+    /\s+(Does|Do|Did|Will|Would|Can|Could|Use|Create|Make|Get|Set|Have)\s*$/i, // Ends with verb (sign of bad conversion)
+    /\s+(Does|Do|Did|Will|Would|Can|Could)\s+\w+\s+(Use|Create|Make)/i, // Auxiliary verb in middle
   ];
 
   for (const pattern of incompletePatterns) {
@@ -415,13 +421,13 @@ function validateTitle(title: string): { valid: boolean; reason?: string } {
     return { valid: false, reason: 'Unbalanced quotes' };
   }
 
-  // Check word count (should be between 2 and 15 words for a good title)
+  // Check word count (should be between 2 and 10 words, ideally 3-6)
   const wordCount = title.trim().split(/\s+/).length;
   if (wordCount < 2) {
     return { valid: false, reason: 'Title needs at least 2 words' };
   }
-  if (wordCount > 15) {
-    return { valid: false, reason: 'Title is too wordy (max 15 words)' };
+  if (wordCount > 10) {
+    return { valid: false, reason: 'Title is too wordy (max 10 words)' };
   }
 
   return { valid: true };
@@ -1451,6 +1457,176 @@ function ensureValidTitle(title: string, messages: DBMessage[]): string {
   // If valid, still normalize formatting and length
   const formatted = formatTitleByLanguage(candidate, language);
   return clampTitle(formatted, 80);
+}
+
+/**
+ * Smart pattern-based title generator - deterministic and reliable
+ */
+function generateDeterministicTitle(question: string): string {
+  const lower = question.toLowerCase().trim();
+
+  // Remove question mark if present
+  const clean = lower.replace(/\?+$/, '').trim();
+
+  // Pattern 1: "How much does X cost?" or "What does X cost?" → "X Pricing"
+  if ((clean.includes('how much') || clean.includes('what')) && (clean.includes('cost') || clean.includes('price'))) {
+    const subject = extractSubject(clean, ['how', 'much', 'does', 'do', 'is', 'are', 'the', 'cost', 'price', 'pricing']);
+    return subject ? `${capitalize(subject)} Pricing` : 'Pricing Information';
+  }
+
+  // Pattern 2: "How many X can I..." or "How many X..." → "X Limits"
+  if (clean.includes('how many')) {
+    const subject = extractSubject(clean, ['how', 'many', 'can', 'could', 'do', 'does', 'i', 'we', 'you', 'create', 'make', 'have', 'get']);
+    if (subject) {
+      // Convert plural to singular for cleaner titles
+      const singular = subject.replace(/s\s*$/, '');
+      return `${capitalize(singular)} Limits`;
+    }
+    return 'Quantity Limits';
+  }
+
+  // Pattern 3: "What X does Y use?" or "Which X does Y use?" → "Y X"
+  if ((clean.includes('what') || clean.includes('which')) && clean.includes('use')) {
+    const parts = clean.split(/\s+/);
+    const useIndex = parts.indexOf('use');
+    const doesIndex = parts.findIndex(p => ['does', 'do', 'is', 'are'].includes(p));
+
+    if (doesIndex > 0 && useIndex > doesIndex) {
+      // Extract main subject (Y) and object (X)
+      const mainSubject = parts.slice(doesIndex + 1, useIndex).filter(w =>
+        !['the', 'a', 'an'].includes(w)
+      ).join(' ');
+      const object = parts.slice(1, doesIndex).filter(w =>
+        !['what', 'which', 'the', 'a', 'an'].includes(w)
+      ).join(' ');
+
+      if (mainSubject && object) {
+        return `${capitalizeWords(mainSubject)} ${capitalizeWords(object)}`;
+      }
+    }
+  }
+
+  // Pattern 4: "How does X compare to Y?" or "X vs Y" → "X vs Y"
+  if ((clean.includes('compare') || clean.includes('vs') || clean.includes('versus')) && clean.includes('to')) {
+    const parts = clean.replace(/how does |how do |how is /g, '').split(/\s+/);
+    const toIndex = parts.findIndex(p => p === 'to' || p === 'versus' || p === 'vs');
+    const compareIndex = parts.indexOf('compare');
+
+    if (toIndex > 0) {
+      const subjectEnd = compareIndex > 0 ? compareIndex : toIndex;
+      const subject1 = parts.slice(0, subjectEnd).filter(w =>
+        !['the', 'a', 'an', 'does', 'do'].includes(w)
+      ).join(' ');
+      const subject2 = parts.slice(toIndex + 1).filter(w =>
+        !['the', 'a', 'an'].includes(w)
+      ).join(' ');
+
+      if (subject1 && subject2) {
+        return `${capitalize(subject1)} vs ${capitalize(subject2)}`;
+      }
+    }
+  }
+
+  // Pattern 5: "What is X?" or "What are X?" → "X Overview" (for simple questions) or "X" (for detailed questions)
+  if ((clean.startsWith('what is') || clean.startsWith('what are') || clean.startsWith('what\'s')) &&
+      !clean.includes('difference') && !clean.includes('use')) {
+    const subject = clean
+      .replace(/^what (is|are|'s) /, '')
+      .replace(/^the /, '')
+      .trim();
+    const words = subject.split(/\s+/).filter(w => w.length > 0);
+
+    if (words.length > 0 && words.length <= 4) {
+      // For multi-word subjects (2+ words), just return the subject capitalized without "Overview"
+      // Example: "What are aspirin side effects?" → "Aspirin Side Effects" (not "...Overview")
+      // Only add "Overview" for single-word subjects
+      // Example: "What is React?" → "React Overview"
+      if (words.length >= 2) {
+        return capitalizeWords(words.join(' '));
+      } else {
+        return `${capitalizeWords(words.join(' '))} Overview`;
+      }
+    }
+  }
+
+  // Pattern 6: "How do I X?" or "How to X?" → "X Guide"
+  if ((clean.startsWith('how do i') || clean.startsWith('how to') || clean.startsWith('how can i')) &&
+      !clean.includes('many') && !clean.includes('much')) {
+    const action = clean
+      .replace(/^how (do i|to|can i) /, '')
+      .replace(/^the /, '')
+      .trim();
+    const words = action.split(/\s+/).slice(0, 3);
+    return `${capitalizeWords(words.join(' '))}`;
+  }
+
+  // Pattern 7: "Can I X?" → "X Capability"
+  if (clean.startsWith('can i') || clean.startsWith('can we') || clean.startsWith('is it possible')) {
+    const action = clean
+      .replace(/^can (i|we) /, '')
+      .replace(/^is it possible to /, '')
+      .trim();
+    const words = action.split(/\s+/).slice(0, 3).filter(w => !['the', 'a', 'an'].includes(w));
+    if (words.length > 0) {
+      return `${capitalizeWords(words.join(' '))}`;
+    }
+  }
+
+  // Default fallback: extract meaningful nouns
+  const words = clean.split(/\s+/).filter(w =>
+    !['how', 'what', 'when', 'where', 'why', 'who', 'which', 'is', 'are', 'was', 'were',
+      'do', 'does', 'did', 'can', 'could', 'will', 'would', 'should', 'the', 'a', 'an',
+      'i', 'me', 'my', 'we', 'our', 'you', 'your', 'to', 'for', 'of', 'in', 'on', 'at'].includes(w) &&
+    w.length > 1
+  );
+
+  if (words.length >= 2) {
+    return capitalizeWords(words.slice(0, 3).join(' '));
+  } else if (words.length === 1) {
+    return `${capitalize(words[0])} Information`;
+  }
+
+  return 'New Chat';
+}
+
+// Helper: Extract subject from question by removing filler words
+function extractSubject(text: string, fillerWords: string[]): string {
+  const words = text.split(/\s+/).filter(w =>
+    !fillerWords.includes(w) &&
+    !['the', 'a', 'an', '?'].includes(w) &&
+    w.length > 1
+  );
+  return words.slice(0, 2).join(' ');
+}
+
+// Helper: Capitalize first letter while preserving proper nouns and acronyms
+function capitalize(text: string): string {
+  if (!text) return '';
+
+  // Preserve known proper nouns and acronyms
+  const properNouns = ['ChatRAG', 'Chatbase', 'API', 'URL', 'SQL', 'NoSQL', 'GraphQL', 'REST'];
+  const found = properNouns.find(noun => text.toLowerCase() === noun.toLowerCase());
+  if (found) return found;
+
+  // Check if it looks like an acronym (all caps or mixed case)
+  if (text.length <= 4 && text === text.toUpperCase()) {
+    return text; // Preserve acronyms like API, SQL, URL
+  }
+
+  // Regular capitalization
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+// Helper: Capitalize each word with smart preservation
+function capitalizeWords(text: string): string {
+  return text.split(' ').map(w => {
+    // Preserve known proper nouns
+    const properNouns = ['ChatRAG', 'Chatbase', 'API', 'URL', 'SQL', 'NoSQL', 'GraphQL', 'REST'];
+    const found = properNouns.find(noun => w.toLowerCase() === noun.toLowerCase());
+    if (found) return found;
+
+    return capitalize(w);
+  }).join(' ');
 }
 
 /**
