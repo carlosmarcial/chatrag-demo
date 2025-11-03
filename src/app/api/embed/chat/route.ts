@@ -9,6 +9,8 @@ import { ExtendedMessage, toAPIMessage } from '@/types/chat';
 import { enhancedRetrieveChunks } from '@/lib/enhanced-rag-retrieval';
 // Import URL extraction utilities
 import { formatURLsForContext, createLinkUsageInstructions, type ExtractedURL } from '@/lib/url-extractor';
+// Import enhanced RAG prompt for strict RAG-only behavior
+import { createEnhancedRAGPrompt } from '@/lib/thinking-rag-enhancer';
 
 // Use Node.js runtime instead of Edge
 export const runtime = 'nodejs';
@@ -255,14 +257,19 @@ Context:
       }
     }
 
-    // Replace {{context}} placeholder with actual retrieved context
+    // Use enhanced RAG prompt for strict RAG-only behavior (same as main chat)
     console.log('[EMBED RAG] Injecting context into system prompt...');
     console.log('[EMBED RAG] Context length:', context.length);
     console.log('[EMBED RAG] System prompt contains {{context}}:', systemPrompt.includes('{{context}}'));
 
-    const finalSystemPrompt = systemPrompt.replace('{{context}}', context);
+    // Use the same logic as main chat: if context exists, use enhanced prompt
+    // This enforces strict RAG-only behavior preventing answers outside knowledge base
+    const finalSystemPrompt = context.length > 0
+      ? createEnhancedRAGPrompt(systemPrompt, context)
+      : systemPrompt.replace('{{context}}', context);
 
     console.log('[EMBED RAG] Final system prompt preview (first 300 chars):', finalSystemPrompt.substring(0, 300));
+    console.log('[EMBED RAG] Using enhanced RAG prompt:', context.length > 0);
 
     const systemMessage: ExtendedMessage = {
       id: 'embed-system-context',
